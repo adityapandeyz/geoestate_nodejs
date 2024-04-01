@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id    Int     @id @default(sequence())
+  email String  @unique
+  password String 
+  token String
+}
+
+model Marker {
+  id    Int     @id @default(sequence())
+  latitude Float @unique
+  longitude Float @unique
+  marketRate Int 
+  unit String
+  color String
+  createdAt DateTime
+}
+
+model Bank {
+  id    Int     @id @default(sequence())
+  bankName String
+  branchName String
+  ifscCode String @unique
+}
+
+model Dataset {
+  id    Int     @id @default(sequence())
+  refNo             String @unique
+  bankName          String
+  branchName        String
+  partyName         String
+  colonyName        String
+  cityVillageName   String
+  latitude          Float @unique
+  longitude         Float
+  marketRate        Int
+  unit              String
+  createdAt         DateTime
+  dateOfVisit       DateTime
+  remarks           String
+  colorMark         String
+}
+
