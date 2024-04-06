@@ -33,7 +33,7 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     context.read<MarkerProvider>().loadMarkers();
     context.read<AuthProvider>().user;
-    context.read<BankProvider>().loadBanks(context);
+    context.read<BankProvider>().loadBanks();
     context.read<DatasetProvider>().loadDatasets();
     return AnimatedSplashScreen(
       duration: 4000,

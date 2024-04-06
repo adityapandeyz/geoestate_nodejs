@@ -5,6 +5,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geoestate/Models/my_marker.dart' as myClient;
 import 'package:geoestate/constants/global_variables.dart';
+import 'package:geoestate/provider/dataset_provider.dart';
+import 'package:geoestate/services/marker_services.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +25,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_marker_widget.dart';
 import '../widgets/custom_textfield.dart';
 import 'create_pages/select_bank_page.dart';
+import 'dateset_page.dart';
 
 class MapPage extends StatefulWidget {
   static const String routeName = '/map';
@@ -218,7 +221,7 @@ class _MapPageState extends State<MapPage> {
                 (doc) {
                   return Marker(
                     point: LatLng(doc.latitude, doc.longitude),
-                    width: 160,
+                    width: 180,
                     height: 32,
                     child: CustomMarkerWidget(
                       lat: doc.latitude,
@@ -370,6 +373,11 @@ class _MapPageState extends State<MapPage> {
                       child: CustomButton(
                         text: 'Search',
                         onClick: () {
+                          if (_coordinatesController.text.isEmpty) {
+                            showAlert(context, 'Empty fields!');
+                            return;
+                          }
+
                           List values = _coordinatesController.text.split(',');
 
                           latitude = double.parse(values[0].trim());
@@ -392,17 +400,16 @@ class _MapPageState extends State<MapPage> {
                       width: 10,
                     ),
                     Expanded(
-                      child: CustomButton(
-                        text: 'Create Marker',
-                        onClick: () {
-                          // setState(() {});
-                          searchMarkers.clear();
-                          isSearching = false;
+                        child: CustomButton(
+                      text: 'Create Marker',
+                      onClick: () {
+                        // setState(() {});
+                        searchMarkers.clear();
+                        isSearching = false;
 
-                          uploadNewMarkerData();
-                        },
-                      ),
-                    ),
+                        uploadNewMarkerData();
+                      },
+                    )),
                   ],
                 ),
               ],
@@ -612,12 +619,14 @@ class _MapPageState extends State<MapPage> {
                       selectedColor = newValue!;
                     });
                     try {
-                      // await FirebaseFirestore.instance
-                      //     .collection('markers')
-                      //     .doc(data[index].markerId)
-                      //     .update({
-                      //   'color': selectedColor,
-                      // });
+                      await MarkerServices.updateColorInMarker(
+                        context: context,
+                        id: data[index].id,
+                        color: selectedColor,
+                      );
+
+                      await context.read<MarkerProvider>().loadMarkers();
+
                       // _marketRateController.clear();
                     } catch (e) {
                       showAlert(context, e.toString());
@@ -642,21 +651,23 @@ class _MapPageState extends State<MapPage> {
                 ),
                 const Spacer(),
 
-                if (cordinatesList
-                    .any((cor) => cor['latitude'] == data[index].latitude))
+                if (context
+                    .read<DatasetProvider>()
+                    .datasets!
+                    .any((cor) => cor.latitude == data[index].latitude))
                   TextButton(
                     child: const Text('View Dataset'),
                     onPressed: () {
-                      // Navigator.of(context).push(
-                      //   MaterialPageRoute(
-                      //     builder: (_) => ViewDatasetPage(
-                      //       // Pass necessary parameters
-                      //       latitude: data[index].latitude,
-                      //       longitude: data[index]
-                      //           .longitude, // Set your desired longitude here
-                      //     ),
-                      //   ),
-                      // );
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => DatasetPage(
+                            // Pass necessary parameters
+                            latitude: data[index].latitude,
+                            longitude: data[index]
+                                .longitude, // Set your desired longitude here
+                          ),
+                        ),
+                      );
                     },
                   )
                 else
@@ -734,6 +745,8 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> uploadNewMarkerData() async {
+    bool isLoading = true;
+
     if (_coordinatesController.text.isEmpty) {
       showAlert(context, 'Empty fields!');
       return;
@@ -754,13 +767,16 @@ class _MapPageState extends State<MapPage> {
         marketRate: 0,
         unit: "",
         color: selectedColor,
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now(),
       );
 
-      (context)
-          .read<MarkerProvider>()
-          .createMarker(context: context, marker: marker);
+      // (context)
+      //     .read<MarkerProvider>()
+      //     .createMarker(context: context, marker: marker);
 
+      await MarkerServices.createMarker(context: context, marker: marker);
+
+      await context.read<MarkerProvider>().loadMarkers();
       _coordinatesController.clear();
       _marketRateController.clear();
     } catch (e) {
@@ -768,6 +784,8 @@ class _MapPageState extends State<MapPage> {
       return;
     }
     // showAlert(context, 'Marker created successfully!');
+
+    isLoading = false;
   }
 
   removeExistingMarker(int markerId) async {
@@ -806,7 +824,7 @@ class _MapPageState extends State<MapPage> {
 
       context.read<MarkerProvider>().markers!.remove(marker);
 
-      context.read<MarkerProvider>().deleteMarker(marker.id.toInt());
+      await MarkerServices.deleteMarkers(markerId);
     } catch (e) {
       showAlert(context, e.toString());
       return;
@@ -875,6 +893,7 @@ class _MapPageState extends State<MapPage> {
                   "Cancel",
                 ),
                 onPressed: () {
+                  _marketRateController.clear();
                   Navigator.pop(context);
                 },
               ),
@@ -885,11 +904,14 @@ class _MapPageState extends State<MapPage> {
                 onPressed: () async {
                   Navigator.pop(context);
                   try {
-                    context.read<MarkerProvider>().updateRateInMarker(
-                          markerId,
-                          int.parse(_marketRateController.text.trim()),
-                          _selectedUnit,
-                        );
+                    await MarkerServices.updateRateInMarker(
+                      context: context,
+                      id: markerId,
+                      marketRate: int.parse(_marketRateController.text.trim()),
+                      unit: _selectedUnit,
+                    );
+
+                    await context.read<MarkerProvider>().loadMarkers();
 
                     _marketRateController.clear();
                   } catch (e) {

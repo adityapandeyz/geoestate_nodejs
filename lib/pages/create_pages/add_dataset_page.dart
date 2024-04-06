@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easy_date_timeline/easy_date_timeline.dart';
 
 import 'package:flutter/material.dart';
@@ -11,6 +13,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../Models/dataset.dart';
 import '../../constants/utils.dart';
+import '../../services/dataset_services.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_page2.dart';
 import '../../widgets/custom_textfield.dart';
@@ -124,27 +127,27 @@ class _AddDataSetState extends State<AddDataSet> {
 
   int documentCount = 1;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   getDocumentCount(widget.ifscCode);
-  // }
+  @override
+  void initState() {
+    super.initState();
+    getDocumentCount(widget.ifscCode);
+  }
 
-  // Future<void> getDocumentCount(String ifscCode) async {
-  //   try {
-  //     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-  //         .collection('datasets')
-  //         .where('bankName', isEqualTo: widget.bankName)
-  //         .get();
+  Future<void> getDocumentCount(String ifscCode) async {
+    try {
+      final querySnapshot =
+          await context.read<DatasetProvider>().datasets!.where((element) {
+        return element.refNo.contains(ifscCode);
+      });
 
-  //     setState(() {
-  //       documentCount = querySnapshot.size;
-  //     });
-  //     print(querySnapshot.size);
-  //   } catch (e) {
-  //     showAlert(context, e.toString());
-  //   }
-  // }
+      setState(() {
+        documentCount = querySnapshot.length;
+      });
+      print(querySnapshot.length);
+    } catch (e) {
+      showAlert(context, e.toString());
+    }
+  }
 
   DateTime selectedDate = DateTime.now();
 
@@ -477,14 +480,13 @@ Longitude: ${widget.longitude}°E""",
                   CustomButton(
                     text: 'Create',
                     onClick: () {
-                      // if (_formKey.currentState!.validate()) {
-                      //   ScaffoldMessenger.of(context).showSnackBar(
-                      //     const SnackBar(
-                      //       content: Text('Data uploaded successfully!!!'),
-                      //     ),
-                      //   );
-
-                      // }
+                      if (_formKey.currentState!.validate()) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Data uploaded successfully!!!'),
+                          ),
+                        );
+                      }
                       uploadData();
                     },
                   )
@@ -530,15 +532,14 @@ Longitude: ${widget.longitude}°E""",
         colorMark: getColorInfo(selectedColor).name.toUpperCase(),
       );
 
-      Provider.of<DatasetProvider>(context, listen: false)
-          .createDataset(dataset);
+      await DatasetServices.createDataset(context: context, dataset: dataset);
     } catch (e) {
       showAlert(context, e.toString());
     }
 
-    // Navigator.of(context).pushAndRemoveUntil(
-    //     MaterialPageRoute(builder: (_) => const HomePage()), (route) => false);
-    // showAlert(context, 'Dataset created successfully!');
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomePage()), (route) => false);
+    showAlert(context, 'Dataset created successfully!');
   }
 
   ColorInfo getColorInfo(Color color) {

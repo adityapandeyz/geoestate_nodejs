@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geoestate/services/dataset_services.dart';
 
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import '../Models/dataset.dart';
 import '../provider/dataset_provider.dart';
 import '../constants/utils.dart';
 import '../widgets/custom_textfield.dart';
+import 'map_page.dart';
 
 class DatasetPage extends StatefulWidget {
   static const String routeName = '/dataset';
@@ -31,7 +33,6 @@ class _DatasetPageState extends State<DatasetPage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    Provider.of<DatasetProvider>(context, listen: false).loadDatasets();
   }
 
   TextEditingController updatePartyNameController = TextEditingController();
@@ -229,7 +230,6 @@ class _DatasetPageState extends State<DatasetPage> {
                   final docCityVillageName =
                       doc.cityVillageName.toString().toLowerCase();
                   final docRefNo = doc.refNo.toString().toLowerCase();
-                  final remarks = doc.remarks.toString().toLowerCase();
                   final searchQuery = _searchController.text.toLowerCase();
 
                   final searchTerms = searchQuery.split(' ');
@@ -238,7 +238,6 @@ class _DatasetPageState extends State<DatasetPage> {
                     (term) =>
                         docBankName.contains(term) ||
                         docBranchName.contains(term) ||
-                        remarks.contains(term) ||
                         partyName.contains(term) ||
                         docColonyName.contains(term) ||
                         docCityVillageName.contains(term) ||
@@ -275,7 +274,7 @@ class _DatasetPageState extends State<DatasetPage> {
                             const Color.fromARGB(255, 163, 163, 163),
                           ),
                           columns: const [
-                            // DataColumn(label: Text('S. No.')),
+                            DataColumn(label: Text('S. No.')),
                             DataColumn(label: Text('Ref. No.')),
                             DataColumn(label: Text('Bank Name')),
                             DataColumn(label: Text('Branch Name')),
@@ -308,11 +307,11 @@ class _DatasetPageState extends State<DatasetPage> {
                                   },
                                 ),
                                 cells: [
-                                  // DataCell(
-                                  //   Text(
-                                  //     data.length.toString(),
-                                  //   ),
-                                  // ),
+                                  DataCell(
+                                    Text(
+                                      data[index].id.toString(),
+                                    ),
+                                  ),
                                   DataCell(
                                     Text(
                                       data[index].refNo.toString(),
@@ -353,20 +352,20 @@ class _DatasetPageState extends State<DatasetPage> {
                                     Text(
                                       '${data[index].latitude}°N, ${data[index].longitude}°E',
                                     ),
-                                    // onTap: () {
-                                    //   Navigator.of(context).pushAndRemoveUntil(
-                                    //     MaterialPageRoute(
-                                    //       builder: (_) => MapPage(
-                                    //         latitude:
-                                    //             data['latitude'].toString(),
-                                    //         longitude:
-                                    //             data['longitude'].toString(),
-                                    //         zoom: 20,
-                                    //       ),
-                                    //     ),
-                                    //     (route) => false,
-                                    //   );
-                                    // },
+                                    onTap: () {
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                          builder: (_) => MapPage(
+                                            latitude:
+                                                data[index].latitude.toString(),
+                                            longitude:
+                                                data[index].latitude.toString(),
+                                            zoom: 20,
+                                          ),
+                                        ),
+                                        (route) => false,
+                                      );
+                                    },
                                   ),
                                   DataCell(
                                       Text(data[index].marketRate.toString())),
@@ -650,9 +649,9 @@ class _DatasetPageState extends State<DatasetPage> {
                     }
 
                     // Update the dataset in the provider
-                    context
-                        .read<DatasetProvider>()
-                        .updateDataset(datasetToUpdate);
+                    // context
+                    //     .read<DatasetProvider>()
+                    //     .updateDataset(datasetToUpdate);
 
                     // Clear all text controllers after successful update
                     updaterefNoController.clear();
@@ -705,12 +704,15 @@ class _DatasetPageState extends State<DatasetPage> {
       return;
     }
     try {
-      Dataset dataset = context
+      final datasetId = context
           .read<DatasetProvider>()
           .datasets!
-          .where((element) => element.id == id) as Dataset;
+          .where((element) => element.id == id)
+          .first
+          .id;
 
-      context.read<DatasetProvider>().deleteDataset(dataset);
+      // context.read<DatasetProvider>().deleteDataset(dataset);
+      await DatasetServices.deleteDataset(datasetId);
     } catch (e) {
       showAlert(context, e.toString());
       return;

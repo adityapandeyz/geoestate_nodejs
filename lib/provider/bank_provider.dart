@@ -11,9 +11,9 @@ class BankProvider extends ChangeNotifier {
   List<Bank>? get banks => _banks;
   Exception? get connectionException => _connectionException;
 
-  Future<void> loadBanks(BuildContext context) async {
+  Future<void> loadBanks() async {
     try {
-      final banks = await BankServices.fetchBanks(context);
+      final banks = await BankServices.getAllBanks();
       _banks = banks;
       notifyListeners();
     } catch (e) {
@@ -27,21 +27,21 @@ class BankProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createBank(Bank bank) async {
-    try {
-      await BankApi.createBank(bank);
-      // await loadBanks();
-    } catch (e) {
-      _connectionFailed(e);
-    }
-  }
+  // Future<void> createBank(Bank bank) async {
+  //   try {
+  //     await BankApi.createBank(bank);
+  //     await loadBanks();
+  //   } catch (e) {
+  //     _connectionFailed(e);
+  //   }
+  // }
 
-  Future<void> deleteBank(int id) async {
-    try {
-      await BankApi.deleteBank(id);
-      // await loadBanks();
-    } catch (e) {
-      _connectionFailed(e);
-    }
-  }
+  // Future<void> deleteBank(int id) async {
+  //   try {
+  //     await BankApi.deleteBank(id);
+  //     // await loadBanks();
+  //   } catch (e) {
+  //     _connectionFailed(e);
+  //   }
+  // }
 }

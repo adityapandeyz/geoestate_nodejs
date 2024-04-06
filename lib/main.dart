@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:geoestate/pages/splash_page.dart';
 import 'package:geoestate/provider/auth_provider.dart';
 import 'package:geoestate/router.dart';

@@ -12,6 +12,8 @@ import '../provider/auth_provider.dart';
 
 class MarkerServices {
   static Future<List<Marker>> getAllMarkers() async {
+    bool isLoading = true;
+
     try {
       final Response response = await Dio().get(
         'http://localhost:3000/api/markers',
@@ -36,7 +38,7 @@ class MarkerServices {
             marketRate: marketRate,
             unit: unit,
             color: color,
-            createdAt: createdAt.toIso8601String(),
+            createdAt: createdAt,
           );
         }).toList();
 
@@ -45,60 +47,77 @@ class MarkerServices {
         throw Exception('Error fetching data from the database.');
       }
     } catch (e) {
-      throw Exception('Error connecting to server - $e');
+      print('Error connecting to server - $e');
     }
+    isLoading = false;
+    return [];
   }
 
-  // static Future<dynamic> createMarker({
-  //   required BuildContext context,
-  //   required Marker marker,
-  // }) async {
+  static Future<dynamic> createMarker({
+    required BuildContext context,
+    required Marker marker,
+  }) async {
+    bool isLoading = true;
+
+    try {
+      final userProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      print(marker.toJson());
+
+      final http.Response response =
+          await http.post(Uri.parse('http://localhost:3000/api/create-marker'),
+              body: jsonEncode({
+                'latitude': marker.latitude,
+                'longitude': marker.longitude,
+                'marketRate': marker.marketRate,
+                'unit': marker.unit,
+                'color': marker.color,
+                'createdAt': marker.createdAt.toIso8601String(),
+              }),
+              headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': userProvider.user.token,
+          });
+
+      httpErrorHandle(
+        response: response,
+        context: context,
+        onSuccess: () {
+          showAlert(context, 'Marker created successfully!');
+        },
+      );
+    } catch (e) {
+      print(e);
+      throw Exception('Error connecting to server - $e');
+    }
+
+    isLoading = false;
+  }
+
+  // static Future<dynamic> createMarker(Marker marker) async {
   //   try {
-  //     final userProvider = Provider.of<AuthProvider>(context, listen: false);
-
-  //     final http.Response response = await http.post(
-  //         Uri.parse('http://localhost:3000/api/create-marker'),
-  //         body: marker.toJson(),
-  //         headers: {
-  //           'Content-Type': 'application/json; charset=UTF-8',
-  //           'x-auth-token': userProvider.user.token,
-  //         });
-
-  //     httpErrorHandle(
-  //       response: response,
-  //       context: context,
-  //       onSuccess: () {
-  //         showAlert(context, 'Marker created successfully!');
-  //       },
+  //     final Response response = await Dio().post(
+  //       'http://localhost:3000/api/create-marker',
+  //       data: marker.toJson(),
+  //       options: Options(
+  //         headers: {'Content-Type': 'application/json; charset=UTF-8'},
+  //       ),
   //     );
+
+  //     if (response.statusCode == 201) {
+  //       return response.data;
+  //     } else {
+  //       throw Exception('Error writing data to database.');
+  //     }
   //   } catch (e) {
   //     print(e);
   //     throw Exception('Error connecting to server - $e');
   //   }
   // }
 
-  static Future<dynamic> createMarker(Marker marker) async {
-    try {
-      final Response response = await Dio().post(
-        'http://localhost:3000/api/create-marker',
-        data: marker.toJson(),
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
-      );
-
-      if (response.statusCode == 201) {
-        return response.data;
-      } else {
-        throw Exception('Error writing data to database.');
-      }
-    } catch (e) {
-      print(e);
-      throw Exception('Error connecting to server - $e');
-    }
-  }
-
   static Future<dynamic> deleteMarkers(int id) async {
+    bool isLoading = true;
+
     try {
       final response = await Dio().delete(
         'http://localhost:3000/api/delete-marker/$id',
@@ -118,7 +137,78 @@ class MarkerServices {
         throw Exception('Error fetching data from the database.');
       }
     } catch (e) {
-      throw Exception('Error connecting to server - $e');
+      print('Error connecting to server - $e');
     }
+    isLoading = false;
+  }
+
+  static Future<dynamic> updateRateInMarker({
+    required BuildContext context,
+    required int id,
+    required int marketRate,
+    required String unit,
+  }) async {
+    bool isLoading = true;
+
+    try {
+      final userProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final http.Response response = await http
+          .put(Uri.parse('http://localhost:3000/api/update-rate-marker'),
+              body: jsonEncode({
+                'id': id,
+                'marketRate': marketRate,
+                'unit': unit,
+              }),
+              headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': userProvider.user.token,
+          });
+
+      httpErrorHandle(
+        response: response,
+        context: context,
+        onSuccess: () {
+          showAlert(context, 'Rate updated successfully!');
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
+    isLoading = false;
+  }
+
+  static Future<dynamic> updateColorInMarker({
+    required BuildContext context,
+    required int id,
+    required String color,
+  }) async {
+    bool isLoading = true;
+
+    try {
+      final userProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final http.Response response = await http
+          .put(Uri.parse('http://localhost:3000/api/update-color-marker'),
+              body: jsonEncode({
+                'id': id,
+                'color': color,
+              }),
+              headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': userProvider.user.token,
+          });
+
+      httpErrorHandle(
+        response: response,
+        context: context,
+        onSuccess: () {
+          showAlert(context, 'Color updated successfully!');
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
+    isLoading = false;
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Marker {
   int id;
   double latitude;
@@ -5,7 +7,7 @@ class Marker {
   int marketRate;
   String unit;
   String color;
-  String createdAt;
+  DateTime createdAt;
 
   Marker({
     required this.id,
@@ -25,7 +27,7 @@ class Marker {
       marketRate: data['marketRate'] ?? 0,
       unit: data['unit'] ?? '',
       color: data['color'] ?? '',
-      createdAt: data['createdAt'] ?? '',
+      createdAt: DateTime.parse(data['createdAt']),
     );
   }
 
@@ -37,7 +39,7 @@ class Marker {
       'marketRate': marketRate,
       'unit': unit,
       'color': color,
-      'createdAt': createdAt,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 }

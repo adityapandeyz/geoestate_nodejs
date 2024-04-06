@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geoestate/constants/apis.dart';
-
 import '../Models/my_marker.dart';
 import '../services/marker_services.dart';
 
@@ -18,8 +16,7 @@ class MarkerProvider extends ChangeNotifier {
 
   Future<void> loadMarkers() async {
     try {
-      final markers = await MarkerServices.getAllMarkers();
-      _markers = markers;
+      _markers = await MarkerServices.getAllMarkers();
       notifyListeners();
     } catch (e) {
       _connectionFailed(e);
@@ -31,7 +28,9 @@ class MarkerProvider extends ChangeNotifier {
     required Marker marker,
   }) async {
     try {
-      await MarkerServices.createMarker(marker);
+      _markers ??= [];
+      _markers!.add(marker);
+      await MarkerServices.createMarker(context: context, marker: marker);
       await loadMarkers();
     } catch (e) {
       _connectionFailed(e);
@@ -40,7 +39,7 @@ class MarkerProvider extends ChangeNotifier {
 
   Future<void> deleteMarker(int id) async {
     try {
-      await MarkerApi.deleteMarkers(id);
+      // await MarkerApi.deleteMarkers(id);
       await loadMarkers();
     } catch (e) {
       _connectionFailed(e);
@@ -49,7 +48,7 @@ class MarkerProvider extends ChangeNotifier {
 
   Future<void> updateRateInMarker(int id, int rate, String unit) async {
     try {
-      await MarkerApi.updateRateInMarker(id, rate, unit);
+      // await MarkerApi.updateRateInMarker(id, rate, unit);
       // await loadMarkers();
     } catch (e) {
       _connectionFailed(e);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../pages/dateset_page.dart';
+
 class CustomMarkerWidget extends StatelessWidget {
   final int price;
   final double lat;
@@ -40,14 +42,14 @@ class CustomMarkerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigator.of(context).push(
-        //   MaterialPageRoute(
-        //     builder: (_) => ViewDatasetPage(
-        //       latitude: lat,
-        //       longitude: lng,
-        //     ),
-        //   ),
-        // );
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DatasetPage(
+              latitude: lat,
+              longitude: lng,
+            ),
+          ),
+        );
       },
       child: SizedBox(
         height: 120,

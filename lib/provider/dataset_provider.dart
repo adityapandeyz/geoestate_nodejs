@@ -27,31 +27,31 @@ class DatasetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createDataset(Dataset dataset) async {
-    try {
-      await DatasetApi.createDataset(dataset);
-      await loadDatasets();
-    } catch (e) {
-      _connectionFailed(e);
-    }
-  }
+  // Future<void> createDataset(Dataset dataset) async {
+  //   try {
+  //     await DatasetApi.createDataset(dataset);
+  //     await loadDatasets();
+  //   } catch (e) {
+  //     _connectionFailed(e);
+  //   }
+  // }
 
-  Future<void> updateDataset(Dataset datasetToUpdate) async {
-    try {
-      // await client.datasets.updateDataset(datasetToUpdate);
+  // Future<void> updateDataset(Dataset datasetToUpdate) async {
+  //   try {
+  //     // await client.datasets.updateDataset(datasetToUpdate);
 
-      // await loadDatasets();
-    } catch (e) {
-      _connectionFailed(e);
-    }
-  }
+  //     // await loadDatasets();
+  //   } catch (e) {
+  //     _connectionFailed(e);
+  //   }
+  // }
 
-  Future<void> deleteDataset(Dataset dataset) async {
-    try {
-      // await client.datasets.deleteDataset(dataset);
-      // await loadDatasets();
-    } catch (e) {
-      _connectionFailed(e);
-    }
-  }
+  // Future<void> deleteDataset(Dataset dataset) async {
+  //   try {
+  //     // await client.datasets.deleteDataset(dataset);
+  //     // await loadDatasets();
+  //   } catch (e) {
+  //     _connectionFailed(e);
+  //   }
+  // }
 }

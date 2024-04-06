@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geoestate/services/bank_services.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -96,7 +97,7 @@ class _SelectBankPageState extends State<SelectBankPage> {
                       branchName: _branchNameController.text.toUpperCase(),
                       ifscCode: _ifscController.text.toUpperCase(),
                     );
-                    (context).read<BankProvider>().createBank(bank);
+                    BankServices.createBank(context, bank);
                   } catch (e) {
                     showAlert(
                       context,
@@ -141,9 +142,6 @@ class _SelectBankPageState extends State<SelectBankPage> {
               docIfscCode.contains(searchText);
         }).toList();
 
-        // if (filteredData.isEmpty) {
-        //   return noDataIcon();
-        // }
         return Padding(
           padding: const EdgeInsets.all(68.0),
           child: Column(
@@ -214,6 +212,15 @@ class _SelectBankPageState extends State<SelectBankPage> {
                         title: Text(
                             '${data.bankName.toString()} ${data.branchName.toString()}'),
                         subtitle: Text(data.ifscCode.toString()),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            BankServices.deleteBank(data.id);
+                            setState(() {
+                              bankProver.banks!.remove(data);
+                            });
+                          },
+                        ),
                       ),
                     );
                   },

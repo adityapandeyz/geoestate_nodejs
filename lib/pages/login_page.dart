@@ -75,152 +75,149 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ],
             ),
-            Expanded(
-              child: Container(
-                alignment: Alignment.center,
-                height: MediaQuery.of(context).size.width * 1,
-                // screenWidth < MediaQuery.of(context).size.width ? 500 : 480,
-                width: screenWidth < MediaQuery.of(context).size.width
-                    ? 600
-                    : double.infinity,
-                decoration: const BoxDecoration(
-                  color: AppColors.greyBackColor,
-                ),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 50.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const AppLogo(),
-                        const Text(
-                          "Geo tagging platform.",
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                          textAlign: TextAlign.center,
+            Container(
+              alignment: Alignment.center,
+              height: MediaQuery.of(context).size.width * 1,
+              // screenWidth < MediaQuery.of(context).size.width ? 500 : 480,
+              width: screenWidth < MediaQuery.of(context).size.width
+                  ? 600
+                  : double.infinity,
+              decoration: const BoxDecoration(
+                color: AppColors.greyBackColor,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const AppLogo(),
+                      const Text(
+                        "Geo tagging platform.",
+                        style: TextStyle(
+                          color: Colors.grey,
                         ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.04,
-                        ),
-                        isSignInButtonClicked == false
-                            ? CustomIconButton(
-                                icon: FontAwesomeIcons.arrowRight,
-                                ontap: () {
-                                  HapticFeedback.vibrate();
-                                  setState(() {
-                                    isSignInButtonClicked = true;
-                                  });
-                                },
-                                text: 'Continue',
-                              )
-                            : Form(
-                                key: _loginFormKey,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CustomTextfield(
-                                      title: 'Email',
-                                      controller: emailController,
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    CustomTextfield(
-                                      title: 'Password',
-                                      isPass: true,
-                                      controller: passwordController,
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    CustomIconButton(
-                                      icon: FontAwesomeIcons.user,
-                                      ontap: () async {
-                                        HapticFeedback.vibrate();
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.04,
+                      ),
+                      isSignInButtonClicked == false
+                          ? CustomIconButton(
+                              icon: FontAwesomeIcons.arrowRight,
+                              ontap: () {
+                                HapticFeedback.vibrate();
+                                setState(() {
+                                  isSignInButtonClicked = true;
+                                });
+                              },
+                              text: 'Continue',
+                            )
+                          : Form(
+                              key: _loginFormKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CustomTextfield(
+                                    title: 'Email',
+                                    controller: emailController,
+                                  ),
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+                                  CustomTextfield(
+                                    title: 'Password',
+                                    isPass: true,
+                                    controller: passwordController,
+                                  ),
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+                                  CustomIconButton(
+                                    icon: FontAwesomeIcons.user,
+                                    ontap: () async {
+                                      HapticFeedback.vibrate();
 
-                                        if (_loginFormKey.currentState!
-                                            .validate()) {
-                                          try {
-                                            await AuthService.login(
-                                              context: context,
-                                              email:
-                                                  emailController.text.trim(),
-                                              password: passwordController.text
-                                                  .trim(),
-                                            );
-                                            Navigator.of(context)
-                                                .pushNamedAndRemoveUntil(
-                                              HomePage.routeName,
-                                              (route) => false,
-                                            );
-                                          } catch (e) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  '$e',
-                                                ),
+                                      if (_loginFormKey.currentState!
+                                          .validate()) {
+                                        try {
+                                          await AuthService.login(
+                                            context: context,
+                                            email: emailController.text.trim(),
+                                            password:
+                                                passwordController.text.trim(),
+                                          );
+                                          Navigator.of(context)
+                                              .pushNamedAndRemoveUntil(
+                                            HomePage.routeName,
+                                            (route) => false,
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                '$e',
                                               ),
-                                            );
-                                          }
+                                            ),
+                                          );
                                         }
-                                      },
-                                      text: 'Login',
-                                    ),
-                                    // const SizedBox(
-                                    //   height: 10,
-                                    // ),
-                                    // CustomIconButton(
-                                    //   icon: FontAwesomeIcons.userPlus,
-                                    //   ontap: () async {
-                                    //     HapticFeedback.vibrate();
-                                    //     if (_loginFormKey.currentState!
-                                    //         .validate()) {
-                                    //       try {
-                                    //         // await provider.createUser(
-                                    //         //   context,
-                                    //         //   emailController.text.trim(),
-                                    //         //   passwordController.text.trim(),
-                                    //         // );
-                                    //         Navigator.of(context)
-                                    //             .pushNamedAndRemoveUntil(
-                                    //           HomePage.routeName,
-                                    //           (route) => false,
-                                    //         );
-                                    //       } catch (e) {
-                                    //         ScaffoldMessenger.of(context)
-                                    //             .showSnackBar(
-                                    //           SnackBar(
-                                    //             content: Text(
-                                    //               '$e',
-                                    //             ),
-                                    //           ),
-                                    //         );
-                                    //       }
-                                    //     }
-                                    //   },
-                                    //   text: 'Create User',
-                                    // )
-                                  ],
-                                ),
+                                      }
+                                    },
+                                    text: 'Login',
+                                  ),
+                                  // const SizedBox(
+                                  //   height: 10,
+                                  // ),
+                                  // CustomIconButton(
+                                  //   icon: FontAwesomeIcons.userPlus,
+                                  //   ontap: () async {
+                                  //     HapticFeedback.vibrate();
+                                  //     if (_loginFormKey.currentState!
+                                  //         .validate()) {
+                                  //       try {
+                                  //         // await provider.createUser(
+                                  //         //   context,
+                                  //         //   emailController.text.trim(),
+                                  //         //   passwordController.text.trim(),
+                                  //         // );
+                                  //         Navigator.of(context)
+                                  //             .pushNamedAndRemoveUntil(
+                                  //           HomePage.routeName,
+                                  //           (route) => false,
+                                  //         );
+                                  //       } catch (e) {
+                                  //         ScaffoldMessenger.of(context)
+                                  //             .showSnackBar(
+                                  //           SnackBar(
+                                  //             content: Text(
+                                  //               '$e',
+                                  //             ),
+                                  //           ),
+                                  //         );
+                                  //       }
+                                  //     }
+                                  //   },
+                                  //   text: 'Create User',
+                                  // )
+                                ],
                               ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        isSignInButtonClicked
-                            ? const SizedBox()
-                            : Text(
-                                'By signing in, you agree to our Privacy Policy and Terms of Service.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
+                            ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      isSignInButtonClicked
+                          ? const SizedBox()
+                          : Text(
+                              'By signing in, you agree to our Privacy Policy and Terms of Service.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: Colors.white,
                               ),
-                      ],
-                    ),
+                              textAlign: TextAlign.center,
+                            ),
+                    ],
                   ),
                 ),
               ),
