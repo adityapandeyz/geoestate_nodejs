@@ -52,7 +52,7 @@ model Dataset {
   unit              String
   createdAt         DateTime
   dateOfVisit       DateTime
-  remarks           String
+  remarks           String? 
   colorMark         String
 }
 

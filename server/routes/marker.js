@@ -5,14 +5,11 @@ const { PrismaClient } = require("@prisma/client");
 const markerRouter = express.Router();
 const prisma = new PrismaClient();
 
-
 markerRouter.get("/api/markers", async (req, res) => {
   try {
-
     const markers = await prisma.marker.findMany();
 
     res.status(201).json(markers);
-    
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -20,37 +17,40 @@ markerRouter.get("/api/markers", async (req, res) => {
 
 markerRouter.post("/api/create-marker", async (req, res) => {
   try {
-    const {latitude, longitude, marketRate, unit, color , createdAt} = req.body;
+    const { latitude, longitude, marketRate, unit, color, createdAt } =
+      req.body;
 
-    const existingMarker = await prisma.marker.findFirst({where: { latitude: latitude },});
-
-    if(existingMarker){
-      return res.status(400).json({ msg: "Marker with same latitude already exists!" });
-    }
-
-    
-
-    const createdMarkers = await prisma.marker.create({
-      data : {
-        latitude,
-        longitude,
-        marketRate,
-        unit,
-        color,
-        createdAt,
-      }
+    const existingMarker = await prisma.marker.findFirst({
+      where: { latitude: latitude },
     });
 
+    if (existingMarker) {
+      return res
+        .status(400)
+        .json({ msg: "Marker with same latitude already exists!" });
+    }
+
+    const parsedCreatedAt = new Date(createdAt);
+
+
+    const createdMarkers = await prisma.marker.create({
+      data: {
+        latitude: latitude,
+        longitude: longitude,
+        marketRate: marketRate,
+        unit: unit,
+        color: color,
+        createdAt: parsedCreatedAt,
+      },
+    });
 
     res.status(201).json(createdMarkers);
-
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-}); 
+});
 
-
-markerRouter.delete("/api/delete-marker/:id", async (req, res) => { 
+markerRouter.delete("/api/delete-marker/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -64,28 +64,48 @@ markerRouter.delete("/api/delete-marker/:id", async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-}
-);
+});
 
-markerRouter.put("/api/update-marker/:id", async (req, res) => { 
+markerRouter.put("/api/update-rate-marker", async (req, res) => {
   try {
-    const { id, marketRate, unit } = req.params;
+    const { id, marketRate, unit } = req.body;
 
-    const deletedMarker = await prisma.marker.update({
+
+   const updatedMarker = await prisma.marker.update({
       where: {
         id: parseInt(id),
       },
-      update:{
+      data: {
         marketRate: marketRate,
         unit: unit,
-      }
+      },
+    
+  });
+
+    res.status(201).json(updatedMarker);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+markerRouter.put("/api/update-color-marker", async (req, res) => {
+  try {
+    const { id, color } = req.body;
+
+    const updatedMarker = await prisma.marker.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        color: color,
+      },
     });
 
-    res.status(201).json(deletedMarker);
+    res.status(201).json(updatedMarker);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 }
 );
-module.exports = markerRouter;
 
+module.exports = markerRouter;

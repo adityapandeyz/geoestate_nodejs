@@ -9,7 +9,7 @@ datasetRouter.get("/api/datasets", async (req, res) => {
   try {
     const datasets = await prisma.dataset.findMany();
     
-    res.status(201). json(datasets);
+    res.status(201).json(datasets);
 
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -29,14 +29,11 @@ datasetRouter.post("/api/create-dataset", async (req, res) => {
       longitude,
       marketRate,
       unit,
-      dateOfValuation,
-      entryBy,
       createdAt,
       remarks,
       colorMark,
       dateOfVisit,
-      billId,
-      id
+
     } = req.body;
 
     const existingDataset = await prisma.dataset.findFirst({where: { latitude: latitude },});
@@ -45,31 +42,49 @@ datasetRouter.post("/api/create-dataset", async (req, res) => {
       return res.status(400).json({ msg: "Dataset with the same latitude already exists!" });
     }
 
+    const parsedCreatedAt = new Date(createdAt);
+    const parsedDateOfVisit = new Date(dateOfVisit);
+
+
     const createdDataset = await prisma.dataset.create({
       data : {
-        refNo,
-        datasetName,
-        bankName,
-        branchName,
-        partyName,
-        colonyName,
-        cityVillageName,
-        latitude,
-        longitude,
-        marketRate,
-        unit,
-        dateOfValuation,
-        entryBy,
-        createdAt,
-        remarks,
-        colorMark,
-        dateOfVisit,
-        billId,
-        id
+     refNo:   refNo,
+       bankName: bankName, 
+        branchName: branchName,
+        partyName: partyName,
+        colonyName: colonyName,
+        cityVillageName: cityVillageName,
+        latitude: latitude,
+        longitude: longitude,
+        marketRate: marketRate,
+        unit: unit,
+        createdAt: parsedCreatedAt,
+        remarks: remarks,
+        colorMark: colorMark,
+        dateOfVisit: parsedDateOfVisit,
+
+
       }
     });
 
     res.status(201).json(createdDataset);
+
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+datasetRouter.delete("/api/delete-dataset/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const dataset = await prisma.dataset.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    res.status(201).json(dataset);
 
   } catch (e) {
     res.status(500).json({ error: e.message });

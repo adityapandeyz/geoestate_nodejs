@@ -6,7 +6,8 @@ const url = require('url');
 // IMPORT FROM OTHER FILES
 const authRouter = require("./routes/auth");
 const markerRouter = require("./routes/marker");
-const datasetRoute = require("./routes/dataset");
+const datasetRouter = require("./routes/dataset");
+const bankRouter = require("./routes/bank");
 
 
 // INIT
@@ -47,7 +48,8 @@ client.connect()
 // Mount the authRouter after setting up middleware
 app.use(authRouter);
 app.use(markerRouter);
-app.use(datasetRoute);
+app.use(datasetRouter);
+app.use(bankRouter);
 
 
 
