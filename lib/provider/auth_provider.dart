@@ -83,7 +83,6 @@ class AuthProvider extends ChangeNotifier {
   User _user = User(
     id: 0,
     email: '',
-    username: '',
     password: '',
     type: '',
     token: '',
@@ -91,7 +90,7 @@ class AuthProvider extends ChangeNotifier {
 
   User get user => _user;
 
-  void setUser(user) {
+  void setUser(String user) {
     _user = User.fromJson(user);
     notifyListeners();
   }

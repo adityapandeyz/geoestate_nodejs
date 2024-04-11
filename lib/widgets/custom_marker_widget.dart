@@ -9,6 +9,7 @@ class CustomMarkerWidget extends StatelessWidget {
   final double lng;
   final String color;
   final String unit;
+  final VoidCallback onTap;
 
   const CustomMarkerWidget({
     super.key,
@@ -17,6 +18,7 @@ class CustomMarkerWidget extends StatelessWidget {
     required this.lng,
     this.color = 'black',
     required this.unit,
+    required this.onTap,
   });
 
   Color getColorFromString(String colorName) {
@@ -41,7 +43,8 @@ class CustomMarkerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: onTap,
+      onDoubleTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => DatasetPage(
@@ -60,8 +63,7 @@ class CustomMarkerWidget extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: Icon(
                 FontAwesomeIcons.caretDown,
-                color: getColorFromString(
-                    '$color'), // Use the getColorFromString method
+                color: getColorFromString(color),
                 size: 60,
               ),
             ),

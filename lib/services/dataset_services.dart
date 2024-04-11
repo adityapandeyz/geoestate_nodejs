@@ -7,13 +7,11 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
 import '../Models/dataset.dart';
-import '../Models/my_marker.dart';
 import '../constants/utils.dart';
 import '../provider/auth_provider.dart';
 
 class DatasetServices {
   static Future<List<Dataset>> getAllDatasets() async {
-    bool isLoading = true;
     try {
       final response = await Dio().get(
         'http://localhost:3000/api/datasets',
@@ -55,7 +53,7 @@ class DatasetServices {
             marketRate: marketRate,
             unit: unit,
             createdAt: createdAt,
-            remarks: remarks ?? '',
+            remarks: remarks,
             colorMark: colorMark,
             dateOfVisit: dateOfVisit,
             id: id,
@@ -69,7 +67,6 @@ class DatasetServices {
     } catch (e) {
       print('Error connecting to server - $e');
     }
-    isLoading = false;
     return [];
   }
 
@@ -77,7 +74,6 @@ class DatasetServices {
     required BuildContext context,
     required Dataset dataset,
   }) async {
-    bool isLoading = true;
     try {
       final userProvider = Provider.of<AuthProvider>(context, listen: false);
 
@@ -114,12 +110,9 @@ class DatasetServices {
     } catch (e) {
       throw Exception('Error connecting to server - $e');
     }
-    isLoading = false;
   }
 
   static Future<dynamic> deleteDataset(int id) async {
-    bool isLoading = true;
-
     try {
       final response = await Dio().delete(
         'http://localhost:3000/api/delete-dataset/$id',
@@ -141,6 +134,72 @@ class DatasetServices {
     } catch (e) {
       print('Error connecting to server - $e');
     }
-    isLoading = false;
+  }
+
+  static Future<dynamic> updateDataset({
+    required BuildContext context,
+    required int id,
+    required Dataset dataset,
+  }) async {
+    try {
+      //  final userProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final http.Response response = await http
+          .put(Uri.parse('http://localhost:3000/api/update-dataset/$id'),
+              body: jsonEncode({
+                'id': dataset.id,
+                'refNo': dataset.refNo,
+                'bankName': dataset.bankName,
+                'branchName': dataset.branchName,
+                'partyName': dataset.partyName,
+                'colonyName': dataset.colonyName,
+                'cityVillageName': dataset.cityVillageName,
+                'latitude': dataset.latitude,
+                'longitude': dataset.longitude,
+                'marketRate': dataset.marketRate,
+                'unit': dataset.unit,
+                'remarks': dataset.remarks,
+                'colorMark': dataset.colorMark,
+              }),
+              headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            //  'x-auth-token': userProvider.user.token,
+          });
+
+      if (response.statusCode == 201) {
+        return response;
+      } else {
+        throw Exception('Error fetching data from the database.');
+      }
+    } catch (e) {
+      throw Exception('Error connecting to server - $e');
+    }
+  }
+
+  static Future<dynamic> updateDateOfVisit({
+    required int id,
+    required DateTime dateOfVisit,
+  }) async {
+    try {
+      final http.Response response = await http.put(
+          Uri.parse('http://localhost:3000/api/update-dataset-dateOfVisit/$id'),
+          body: jsonEncode(
+            {
+              'dateOfVisit': dateOfVisit.toIso8601String(),
+            },
+          ),
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            //  'x-auth-token': userProvider.user.token,
+          });
+
+      if (response.statusCode == 201) {
+        return response;
+      } else {
+        throw Exception('Error fetching data from the database.');
+      }
+    } catch (e) {
+      throw Exception('Error connecting to server - $e');
+    }
   }
 }

@@ -46,13 +46,14 @@ class _DatasetPageState extends State<DatasetPage> {
   TextEditingController updateUnitController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
+  bool _isLoading = false;
 
   Future<void> _selectDate(
       BuildContext context, DateTime initDate, int id) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initDate,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1900),
       lastDate: DateTime(2101),
     );
 
@@ -66,20 +67,21 @@ class _DatasetPageState extends State<DatasetPage> {
   }
 
   Future<void> _updateDateOnFirestore(int id) async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
-      // await FirebaseFirestore.instance
-      //     .collection('datasets')
-      //     .doc(datasetId)
-      //     .update({
-      //   'dateOfVisit': DateTime(
-      //     _selectedDate.year,
-      //     _selectedDate.month,
-      //     _selectedDate.day,
-      //   ),
-      // });
+      await DatasetServices.updateDateOfVisit(
+        id: id,
+        dateOfVisit: _selectedDate,
+      );
+      await (context).read<DatasetProvider>().loadDatasets();
     } catch (e) {
       showAlert(context, e.toString());
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -152,6 +154,21 @@ class _DatasetPageState extends State<DatasetPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('View Existing Datasets'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _isLoading = true;
+              });
+              context.read<DatasetProvider>().loadDatasets();
+
+              setState(() {
+                _isLoading = false;
+              });
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -217,7 +234,6 @@ class _DatasetPageState extends State<DatasetPage> {
             // Data Table
             Consumer<DatasetProvider>(
               builder: (context, datasetProvider, child) {
-                datasetProvider.loadDatasets();
                 final filteredData = datasetProvider.datasets!.where((doc) {
                   if (widget.longitude != 0.0) {
                     final double docLongitude = doc.longitude;
@@ -353,7 +369,7 @@ class _DatasetPageState extends State<DatasetPage> {
                                       '${data[index].latitude}°N, ${data[index].longitude}°E',
                                     ),
                                     onTap: () {
-                                      Navigator.of(context).pushAndRemoveUntil(
+                                      Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (_) => MapPage(
                                             latitude:
@@ -363,7 +379,6 @@ class _DatasetPageState extends State<DatasetPage> {
                                             zoom: 20,
                                           ),
                                         ),
-                                        (route) => false,
                                       );
                                     },
                                   ),
@@ -373,24 +388,31 @@ class _DatasetPageState extends State<DatasetPage> {
                                   // DataCell(Text(DateFormat('yyyy-MM-dd')
                                   //     .format(data['dateOfValuation'].toDate())
                                   //     .toString())),
-                                  DataCell(Row(
-                                    children: [
-                                      Text(
-                                        DateFormat('dd-MM-yyyy')
-                                            .format(data[index].dateOfVisit),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          _selectDate(
-                                            context,
-                                            data[index].dateOfVisit,
-                                            data[index].id,
-                                          );
-                                        },
-                                        icon: const Icon(Icons.edit),
-                                      )
-                                    ],
-                                  )),
+                                  _isLoading
+                                      ? DataCell(
+                                          CircularProgressIndicator(),
+                                        )
+                                      : DataCell(
+                                          Row(
+                                            children: [
+                                              Text(
+                                                DateFormat('dd-MM-yyyy').format(
+                                                  data[index].dateOfVisit,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  _selectDate(
+                                                    context,
+                                                    data[index].dateOfVisit,
+                                                    data[index].id,
+                                                  );
+                                                },
+                                                icon: const Icon(Icons.edit),
+                                              )
+                                            ],
+                                          ),
+                                        ),
                                   DataCell(Text(
                                     data[index].remarks.toString(),
                                   )),
@@ -585,15 +607,26 @@ class _DatasetPageState extends State<DatasetPage> {
                   "Cancel",
                 ),
                 onPressed: () {
+                  updaterefNoController.clear();
+                  updatePartyNameController.clear();
+                  updateCityVillageNameController.clear();
+                  updateColonyNameController.clear();
+                  updateMarketRateController.clear();
+                  updateUnitController.clear();
+                  updateRemarksController.clear();
                   Navigator.pop(context);
                 },
               ),
               ElevatedButton(
-                child: const Text(
-                  "Update",
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text(
+                        "Update",
+                      ),
                 onPressed: () async {
-                  Navigator.pop(context);
+                  setState(() {
+                    _isLoading = true;
+                  });
                   try {
                     // Create a new Dataset object with existing values
                     Dataset datasetToUpdate = Dataset(
@@ -648,10 +681,13 @@ class _DatasetPageState extends State<DatasetPage> {
                           colorMark.toString().toUpperCase();
                     }
 
-                    // Update the dataset in the provider
-                    // context
-                    //     .read<DatasetProvider>()
-                    //     .updateDataset(datasetToUpdate);
+                    await DatasetServices.updateDataset(
+                      context: context,
+                      id: id,
+                      dataset: datasetToUpdate,
+                    );
+
+                    await context.read<DatasetProvider>().loadDatasets();
 
                     // Clear all text controllers after successful update
                     updaterefNoController.clear();
@@ -662,9 +698,13 @@ class _DatasetPageState extends State<DatasetPage> {
                     updateUnitController.clear();
                     updateRemarksController.clear();
                   } catch (e) {
-                    // Show an alert if any error occurs during dataset update
-                    showAlert(context, e.toString());
+                    print(e);
                   }
+
+                  setState(() {
+                    _isLoading = false;
+                  });
+                  Navigator.pop(context);
                 },
               )
             ],
@@ -672,6 +712,21 @@ class _DatasetPageState extends State<DatasetPage> {
         });
       },
     );
+  }
+
+  Future<void> updateDatasetLogic(
+      Dataset dataset, Map<String, dynamic> updates) async {
+    Dataset updatedDataset = dataset.copyWith(updates);
+
+    try {
+      await DatasetServices.updateDataset(
+        context: context,
+        id: dataset.id,
+        dataset: updatedDataset,
+      );
+    } catch (e) {
+      showAlert(context, e.toString());
+    }
   }
 
   removeExistingDataset(int id) async {
@@ -703,6 +758,9 @@ class _DatasetPageState extends State<DatasetPage> {
     if (result == null || !result) {
       return;
     }
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final datasetId = context
           .read<DatasetProvider>()
@@ -717,6 +775,9 @@ class _DatasetPageState extends State<DatasetPage> {
       showAlert(context, e.toString());
       return;
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _navigateToNextPage(BuildContext context,

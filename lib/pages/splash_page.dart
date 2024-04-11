@@ -3,7 +3,6 @@ import 'package:geoestate/pages/login_page.dart';
 import 'package:geoestate/provider/auth_provider.dart';
 import 'package:geoestate/provider/dataset_provider.dart';
 import 'package:geoestate/widgets/app_logo.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 
@@ -26,36 +25,42 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    authService.getUserData(context);
+    loadDataAndNavigate();
+  }
+
+  Future<void> loadDataAndNavigate() async {
+    await context.read<MarkerProvider>().loadMarkers();
+    await context.read<BankProvider>().loadBanks();
+    await context.read<DatasetProvider>().loadDatasets();
+
+    Navigator.pushReplacement(
+      context,
+      PageTransition(
+        type: PageTransitionType.leftToRightWithFade,
+        child: Provider.of<AuthProvider>(context, listen: false)
+                .user
+                .token
+                .isNotEmpty
+            ? const HomePage()
+            : const LoginPage(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    context.read<MarkerProvider>().loadMarkers();
-    context.read<AuthProvider>().user;
-    context.read<BankProvider>().loadBanks();
-    context.read<DatasetProvider>().loadDatasets();
-    return AnimatedSplashScreen(
-      duration: 4000,
-      splash: const Scaffold(
-        body: Center(
-          child: Card(
-            child: SizedBox(
-              height: 300,
-              width: 300,
-              child: AppLogo(
-                size: 48,
-              ),
+    return const Scaffold(
+      body: Center(
+        child: Card(
+          child: SizedBox(
+            height: 300,
+            width: 300,
+            child: AppLogo(
+              size: 48,
             ),
           ),
         ),
       ),
-      nextScreen: Provider.of<AuthProvider>(context).user.token.isNotEmpty
-          ? const HomePage()
-          : const LoginPage(),
-      splashTransition: SplashTransition.fadeTransition,
-      pageTransitionType: PageTransitionType.leftToRightWithFade,
-      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
     );
   }
 }

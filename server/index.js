@@ -9,13 +9,13 @@ const markerRouter = require("./routes/marker");
 const datasetRouter = require("./routes/dataset");
 const bankRouter = require("./routes/bank");
 
-
 // INIT
 const PORT = 3000;
 const app = express();
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
+
 
 // Connection configuration
 const cockroachDBUrl = 'postgresql://geoestate_cloud:iPCbsK-7VzPQws2HwprBFw@geoestate-8844.8nk.gcp-asia-southeast1.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full';
@@ -50,8 +50,6 @@ app.use(authRouter);
 app.use(markerRouter);
 app.use(datasetRouter);
 app.use(bankRouter);
-
-
 
 // Start the server
 app.listen(PORT, "0.0.0.0", () => {

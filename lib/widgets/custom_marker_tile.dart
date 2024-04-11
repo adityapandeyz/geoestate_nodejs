@@ -10,7 +10,7 @@ class CustomMarkerTile extends StatelessWidget {
   final VoidCallback removeExistingMarker;
 
   const CustomMarkerTile({
-    Key? key,
+    super.key,
     required this.updateCameraPosition,
     required this.latitude,
     required this.longitude,
@@ -18,7 +18,7 @@ class CustomMarkerTile extends StatelessWidget {
     required this.unit,
     required this.addPrice,
     required this.removeExistingMarker,
-  }) : super(key: key);
+  });
 
   Widget _buildLocationDetails() {
     return Column(

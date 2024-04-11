@@ -33,6 +33,43 @@ class Dataset {
     required this.colorMark,
   });
 
+  Dataset copyWith(
+    Map<String, dynamic> updates, {
+    String? refNo,
+    String? bankName,
+    String? branchName,
+    String? partyName,
+    String? colonyName,
+    String? cityVillageName,
+    double? latitude,
+    double? longitude,
+    int? marketRate,
+    String? unit,
+    DateTime? createdAt,
+    String? remarks,
+    int? id,
+    DateTime? dateOfVisit,
+    String? colorMark,
+  }) {
+    return Dataset(
+      refNo: refNo ?? this.refNo,
+      bankName: bankName ?? this.bankName,
+      branchName: branchName ?? this.branchName,
+      partyName: partyName ?? this.partyName,
+      colonyName: colonyName ?? this.colonyName,
+      cityVillageName: cityVillageName ?? this.cityVillageName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      marketRate: marketRate ?? this.marketRate,
+      unit: unit ?? this.unit,
+      createdAt: createdAt ?? this.createdAt,
+      remarks: remarks ?? this.remarks,
+      id: id ?? this.id,
+      dateOfVisit: dateOfVisit ?? this.dateOfVisit,
+      colorMark: colorMark ?? this.colorMark,
+    );
+  }
+
   factory Dataset.fromJson(Map<String, dynamic> map) {
     return Dataset(
       refNo: map['refNo'] ?? '',

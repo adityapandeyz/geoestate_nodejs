@@ -17,7 +17,7 @@ markerRouter.get("/api/markers", async (req, res) => {
 
 markerRouter.post("/api/create-marker", async (req, res) => {
   try {
-    const { latitude, longitude, marketRate, unit, color, createdAt } =
+    const { latitude, longitude, createdAt } =
       req.body;
 
     const existingMarker = await prisma.marker.findFirst({
@@ -37,9 +37,9 @@ markerRouter.post("/api/create-marker", async (req, res) => {
       data: {
         latitude: latitude,
         longitude: longitude,
-        marketRate: marketRate,
-        unit: unit,
-        color: color,
+        marketRate: 0,
+        unit: 'SQFT',
+        color: 'red',
         createdAt: parsedCreatedAt,
       },
     });

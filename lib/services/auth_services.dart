@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geoestate/constants/error_handling.dart';
 import 'package:geoestate/constants/utils.dart';
+import 'package:geoestate/pages/home_page.dart';
 import 'package:geoestate/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+
 
 class AuthService {
   // void loginUser({
@@ -111,13 +113,21 @@ class AuthService {
           'Content-Type': 'application/json; charset=UTF-8',
         },
       );
+
       httpErrorHandle(
         response: res,
         context: context,
         onSuccess: () async {
           SharedPreferences prefs = await SharedPreferences.getInstance();
+          Provider.of<AuthProvider>(context, listen: false).setUser(res.body);
 
+          print(res.body);
           await prefs.setString('x-auth-token', jsonDecode(res.body)['token']);
+
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            HomePage.routeName,
+            (route) => false,
+          );
         },
       );
     } catch (e) {

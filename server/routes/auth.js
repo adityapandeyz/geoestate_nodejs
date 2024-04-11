@@ -22,7 +22,7 @@ authRouter.post("/api/signup", async (req, res) => {
         .json({ msg: "User with same email already exists!" });
     }
 
-    bcryptjs.hash(password, 6, async (err, hash) => {
+   bcryptjs.hash(password, 6, async (err, hash) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
@@ -55,7 +55,7 @@ authRouter.post("/api/signin", async (req, res) => {
     const existingUser = await prisma.user.findFirst({
       where: { email: email },
     });
-
+  
     if (!existingUser) {
       return res.status(400).json({ msg: "User not found!" });
     }
@@ -64,17 +64,15 @@ authRouter.post("/api/signin", async (req, res) => {
       return res.status(400).json({ msg: "Password is not set for this user!" });
     }
 
-    console.log(password);
-
 
     const isMatch = await bcryptjs.compare(password, existingUser.password);
 
 
-    if (!isMatch) {
+    if (!isMatch) { 
       return res.status(400).json({ msg: "Invalid credentials!" });
     }
 
-    const token = jwt.sign({ id: existingUser.id }, "0", { expiresIn: "1h" });
+    const token = jwt.sign({ id: existingUser.id }, "0", { expiresIn: "12h" });
 
     res.json({
       token,

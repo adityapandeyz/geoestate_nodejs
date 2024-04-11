@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geoestate/constants/global_variables.dart';
 import 'package:geoestate/pages/dateset_page.dart';
 import 'package:geoestate/pages/login_page.dart';
 import 'package:geoestate/pages/map_page.dart';
@@ -22,18 +23,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // leading: const Padding(
-        //   padding: EdgeInsets.only(left: 8.0, top: 8, bottom: 8, right: 0),
-        //   child: CircleAvatar(
-        //     radius: 13,
-        //     child: CircleAvatar(
-        //       radius: 12,
-        //       backgroundImage: NetworkImage(
-        //         'https://images.unsplash.com/photo-1584974292709-5c2f0619971b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        //       ),
-        //     ),
-        //   ),
-        // ),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 8.0, top: 8, bottom: 8, right: 0),
+          child: CircleAvatar(
+            radius: 12,
+            backgroundImage: AssetImage(
+              'assets/IconKitchen-Output/web/icon-512.png',
+            ),
+          ),
+        ),
         title: const AppLogo(
           size: 26,
         ),
@@ -80,9 +78,9 @@ class _HomePageState extends State<HomePage> {
                 width: double.infinity,
                 height: 300,
                 child: Image(
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fitWidth,
                   image: NetworkImage(
-                      'https://images.unsplash.com/photo-1522678073884-26b1b87526e4?q=80&w=2135&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+                      'https://images.unsplash.com/photo-1584972191378-d70853fc47fc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
                 ),
               ),
 
@@ -107,7 +105,7 @@ class _HomePageState extends State<HomePage> {
                           },
                           child: Container(
                             padding: const EdgeInsets.all(8),
-                            color: Colors.teal[300],
+                            color: AppColors.primaryColor,
                             child: const Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -134,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                           },
                           child: Container(
                             padding: const EdgeInsets.all(8),
-                            color: Colors.teal[200],
+                            color: AppColors.primaryColor,
                             child: const Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -161,7 +159,7 @@ class _HomePageState extends State<HomePage> {
                         width: double.infinity,
                         height: 150,
                         padding: const EdgeInsets.all(8),
-                        color: Colors.teal[400],
+                        color: AppColors.primaryColor,
                         child: const Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -186,18 +184,18 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(
                 height: 20,
               ),
-
               const AppLogo(
                 color: Color.fromARGB(110, 99, 99, 99),
               ),
-
               const Text(
                 'Copyright © 2024. All Right Reserved.',
                 style: TextStyle(
                   color: Color.fromARGB(179, 99, 99, 99),
                 ),
-              )
-
+              ),
+              const SizedBox(
+                height: 20,
+              ),
               //           Container(
               //             padding: const EdgeInsets.all(8),
               //             color: Colors.teal[400],

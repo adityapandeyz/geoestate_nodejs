@@ -1,7 +1,3 @@
-import 'dart:math';
-
-import 'package:easy_date_timeline/easy_date_timeline.dart';
-
 import 'package:flutter/material.dart';
 import 'package:geoestate/pages/home_page.dart';
 import 'package:geoestate/provider/dataset_provider.dart';
@@ -9,7 +5,6 @@ import 'package:geoestate/provider/dataset_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../Models/dataset.dart';
 import '../../constants/utils.dart';
@@ -17,9 +12,6 @@ import '../../services/dataset_services.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_page2.dart';
 import '../../widgets/custom_textfield.dart';
-import '../map_page.dart';
-
-// import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 class AddDataSet extends StatefulWidget {
   final double latitude;
@@ -50,9 +42,7 @@ class AddDataSet extends StatefulWidget {
 class _AddDataSetState extends State<AddDataSet> {
   final _formKey = GlobalKey<FormState>();
 
-  // Position? _currentLocation;
   late bool servicePermission = false;
-  // late LocationPermission permission;
 
   TextEditingController partyNameController = TextEditingController();
   TextEditingController colonyNameController = TextEditingController();
@@ -61,37 +51,6 @@ class _AddDataSetState extends State<AddDataSet> {
   TextEditingController remarksController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
-
-  // // String _currentAddress = "";
-
-  // Future<Position> _getCurrentLocation() async {
-  //   servicePermission = await Geolocator.isLocationServiceEnabled();
-
-  //   if (!servicePermission) {
-  //     print('Service Disabled');
-  //   }
-  //   permission = await Geolocator.checkPermission();
-
-  //   if (permission == LocationPermission.denied) {
-  //     permission = await Geolocator.requestPermission();
-  //   }
-  //   return await Geolocator.getCurrentPosition();
-  // }
-
-  // _getAddressFromCoordinates() async {
-  //   try {
-  //     List<Placemark> placemarks = await placemarkFromCoordinates(
-  //         _currentLocation!.latitude, _currentLocation!.longitude);
-
-  //     Placemark place = placemarks[0];
-
-  //     setState(() {
-  //       _currentAddress = "${place.locality}, ${place.country}";
-  //     });
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
 
   @override
   void dispose() {
@@ -105,22 +64,14 @@ class _AddDataSetState extends State<AddDataSet> {
   }
 
   Color selectedColor = Colors.red;
-  // final List<Color> colors = [
-  //   Colors.red,
-  //   Colors.orange,
-  //   Colors.green,
-  //   Colors.blue,
-  //   Colors.yellow,
-  // ];
 
   final Map<int, ColorInfo> colorInfos = {
-    Colors.white.value: ColorInfo('White', 'Unknown'),
-    Colors.red.value: ColorInfo('Red', 'Cancel'),
-    Colors.green.value: ColorInfo('Green', 'Complete'),
-    Colors.blue.value: ColorInfo('Blue', 'Complete but not printed'),
-    Colors.yellow.value:
-        ColorInfo('Yellow', 'Drafting (Complete but value not put)'),
-    Colors.orange.value: ColorInfo('Orange', 'Hold'),
+    Colors.white.value: ColorInfo('White', 'White'),
+    Colors.red.value: ColorInfo('Red', 'Red'),
+    Colors.green.value: ColorInfo('Green', 'Green'),
+    Colors.blue.value: ColorInfo('Blue', 'Blue'),
+    Colors.yellow.value: ColorInfo('Yellow', 'Yellow'),
+    Colors.orange.value: ColorInfo('Orange', 'Orange'),
     Colors.purple.value: ColorInfo('Purple', 'Purple'),
     Colors.indigo.value: ColorInfo('Indigo', 'Indigo'),
   };
@@ -136,14 +87,13 @@ class _AddDataSetState extends State<AddDataSet> {
   Future<void> getDocumentCount(String ifscCode) async {
     try {
       final querySnapshot =
-          await context.read<DatasetProvider>().datasets!.where((element) {
+          context.read<DatasetProvider>().datasets!.where((element) {
         return element.refNo.contains(ifscCode);
       });
 
       setState(() {
         documentCount = querySnapshot.length;
       });
-      print(querySnapshot.length);
     } catch (e) {
       showAlert(context, e.toString());
     }
@@ -235,7 +185,6 @@ class _AddDataSetState extends State<AddDataSet> {
                   const SizedBox(
                     height: 20,
                   ),
-
                   CustomTextfield(
                     title: 'Party Name',
                     autoFocus: true,
@@ -305,7 +254,6 @@ Longitude: ${widget.longitude}°E""",
                   const SizedBox(
                     height: 20,
                   ),
-
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -329,11 +277,6 @@ Longitude: ${widget.longitude}°E""",
                       ),
                     ],
                   ),
-                  // CustomTextfield(
-                  //   title: 'Market Rate',
-                  //   autoFocus: true,
-                  //   controller: marketRateController,
-                  // ),
                   const SizedBox(
                     height: 20,
                   ),
@@ -368,51 +311,6 @@ Longitude: ${widget.longitude}°E""",
                       )
                     ],
                   ),
-                  // EasyDateTimeLine(
-                  //   initialDate: DateTime.now(),
-                  //   onDateChange: (selectedDate) {
-                  //     setState(() {
-                  //       _selectedDate = selectedDate;
-                  //     });
-                  //   },
-                  //   activeColor: const Color(0xff116A7B),
-                  //   dayProps: const EasyDayProps(
-                  //     landScapeMode: true,
-                  //     activeDayStyle: DayStyle(
-                  //       borderRadius: 48.0,
-                  //     ),
-                  //     dayStructure: DayStructure.dayStrDayNum,
-                  //   ),
-                  //   headerProps: const EasyHeaderProps(
-                  //     selectedDateFormat:
-                  //         SelectedDateFormat.fullDateDMonthAsStrY,
-                  //   ),
-                  // ),
-                  // const SizedBox(
-                  //   height: 20,
-                  // ),
-                  // NeoPopButton(
-                  //   color: CustomColors.mainColor,
-                  //   functionUp: () => HapticFeedback.vibrate(),
-                  //   functionDown: () => HapticFeedback.vibrate(),
-                  //   parentColor: Colors.transparent,
-                  //   // buttonPosition: Position.center,
-                  //   child: const Padding(
-                  //     padding: EdgeInsets.symmetric(
-                  //         horizontal: 20, vertical: 15),
-                  //     child: Row(
-                  //       mainAxisAlignment: MainAxisAlignment.center,
-                  //       children: [
-                  //         Text(
-                  //           "Upload Data",
-                  //           style: TextStyle(
-                  //             color: Colors.white,
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
                   const SizedBox(
                     height: 30,
                   ),
@@ -508,8 +406,6 @@ Longitude: ${widget.longitude}°E""",
     }
 
     try {
-      String billId = const Uuid().v4();
-
       Dataset dataset = Dataset(
         id: 0,
         refNo: 'PA/${widget.ifscCode}/VR/${documentCount + 1}',
@@ -543,7 +439,6 @@ Longitude: ${widget.longitude}°E""",
   }
 
   ColorInfo getColorInfo(Color color) {
-    // Use the colorInfos map to get the ColorInfo object
     return colorInfos[color.value] ?? ColorInfo('Unknown', 'Unknown');
   }
 }

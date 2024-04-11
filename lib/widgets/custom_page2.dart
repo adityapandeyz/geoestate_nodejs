@@ -9,6 +9,8 @@ class CustomPage2 extends StatefulWidget {
   final List<Widget> actions;
   final double height;
 
+  final VoidCallback? onRefresh;
+
   const CustomPage2({
     super.key,
     required this.sidebar,
@@ -18,6 +20,7 @@ class CustomPage2 extends StatefulWidget {
     this.changeContent = false,
     this.actions = const [],
     this.height = 800,
+    this.onRefresh,
   });
 
   @override

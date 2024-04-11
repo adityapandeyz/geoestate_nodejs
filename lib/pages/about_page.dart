@@ -1,5 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:flutter/material.dart';
+import 'package:geoestate/widgets/app_logo.dart';
 
 class AboutPage extends StatelessWidget {
   static const String routeName = '/about';
@@ -40,68 +41,44 @@ class AboutPage extends StatelessWidget {
                 blur: 8,
                 elevation: 6,
                 padding: const EdgeInsets.all(32),
-                child: const Padding(
-                  padding: EdgeInsets.all(24.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircleAvatar(
-                        radius: 45,
-                        backgroundImage: NetworkImage(
-                          'https://images.unsplash.com/photo-1584974292709-5c2f0619971b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                        ),
+                      Image.asset(
+                        'assets/IconKitchen-Output/web/icon-512.png',
+                        height: 80,
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Version: 0.0.1+1',
+                      SizedBox(
+                        height: 10,
+                      ),
+                      const SizedBox(
+                        width: 100,
+                        child: AppLogo(),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Version: 0.0.3+1',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                         ),
                         //textAlign: TextAlign.,
                       ),
-                      // const Text(
-                      //   'BETA Release',
-                      //   style: TextStyle(
-                      //     fontWeight: FontWeight.w500,
-                      //     fontSize: 11,
-                      //   ),
-                      //   //textAlign: TextAlign.,
-                      // ),
-
-                      // Container(
-                      //   decoration: const BoxDecoration(
-                      //     //borderRadius: BorderRadius.circular(10.0),
-                      //     gradient: LinearGradient(
-                      //       colors: [
-                      //         Color.fromARGB(255, 57, 14, 177),
-                      //         Color.fromARGB(255, 214, 9, 9),
-                      //       ],
-                      //     ),
-                      //     boxShadow: [
-                      //       BoxShadow(
-                      //         color: Color.fromARGB(255, 0, 0, 0),
-                      //       )
-                      //     ],
-                      //   ),
-                      //   child: Padding(
-                      //       padding: const EdgeInsets.all(8.0),
-                      //       child: SizedBox(
-                      //         height: 100,
-                      //         width: 100,
-                      //         child: Image.asset(
-                      //           'assets/logo/dot.-150x150.png',
-                      //         ),
-                      //       )),
-                      // ),
-                      SizedBox(height: 10),
-
-                      Text(
+                      const SizedBox(height: 10),
+                      const Text(
                         'GeoEstate',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Copyright © 2024. All Right Reserved.',
+                        style: TextStyle(
+                          color: Color.fromARGB(200, 177, 175, 175),
+                        ),
+                      )
                     ],
                   ),
                 ),

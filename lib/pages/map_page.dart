@@ -9,13 +9,10 @@ import 'package:geoestate/provider/dataset_provider.dart';
 import 'package:geoestate/services/marker_services.dart';
 
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../Models/search.dart';
-import '../../main.dart';
 
 import 'package:latlong2/latlong.dart';
 
@@ -49,6 +46,7 @@ class _MapPageState extends State<MapPage> {
   final _unitController = TextEditingController();
   final _searchController = TextEditingController();
   bool isShowResult = false;
+  bool _isLoading = false;
 
   final _passPhraseController = TextEditingController();
 
@@ -166,11 +164,14 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () => context.read<MarkerProvider>().loadMarkers(),
       child: Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           title: const Text('Map'),
           actions: [
@@ -190,9 +191,16 @@ class _MapPageState extends State<MapPage> {
                   width: 20,
                 ),
                 IconButton(
-                  icon: const Icon(FontAwesomeIcons.refresh),
+                  icon: const Icon(Icons.refresh),
                   onPressed: () {
+                    setState(() {
+                      _isLoading = true;
+                    });
                     context.read<MarkerProvider>().loadMarkers();
+
+                    setState(() {
+                      _isLoading = false;
+                    });
                   },
                 ),
                 // const SizedBox(
@@ -229,6 +237,13 @@ class _MapPageState extends State<MapPage> {
                       price: doc.marketRate,
                       unit: doc.unit,
                       color: doc.color,
+                      onTap: () {
+                        setState(() {
+                          _searchController.value = TextEditingValue(
+                            text: '${doc.latitude}',
+                          );
+                        });
+                      },
                     ),
                   );
                 },
@@ -341,13 +356,12 @@ class _MapPageState extends State<MapPage> {
                   onChanged: (value) {
                     searchMarkers.clear();
                   },
-                  suffix: isSearching
+                  suffix: _coordinatesController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(
                             FontAwesomeIcons.close,
                           ),
                           onPressed: () {
-                            isSearching = false;
                             searchMarkers.clear();
                             _coordinatesController.clear();
                             mapController.move(
@@ -402,8 +416,8 @@ class _MapPageState extends State<MapPage> {
                     Expanded(
                         child: CustomButton(
                       text: 'Create Marker',
+                      isLoading: _isLoading,
                       onClick: () {
-                        // setState(() {});
                         searchMarkers.clear();
                         isSearching = false;
 
@@ -455,6 +469,14 @@ class _MapPageState extends State<MapPage> {
                 Expanded(
                   child: CustomTextfield(
                     title: 'Search',
+                    suffix: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                            },
+                          )
+                        : SizedBox(),
                     controller: _searchController,
                     onChanged: (value) {
                       setState(() {});
@@ -607,109 +629,117 @@ class _MapPageState extends State<MapPage> {
                 ],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                // SplitButtonBar(child: , flyout: Flyout),
-                DropdownButton<String>(
-                  value: data[index].color,
-                  onChanged: (String? newValue) async {
-                    setState(() {
-                      selectedColor = newValue!;
-                    });
-                    try {
-                      await MarkerServices.updateColorInMarker(
-                        context: context,
-                        id: data[index].id,
-                        color: selectedColor,
-                      );
+            _isLoading
+                ? const CircularProgressIndicator()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      // SplitButtonBar(child: , flyout: Flyout),
+                      DropdownButton<String>(
+                        value: data[index].color,
+                        onChanged: (String? newValue) async {
+                          setState(() {
+                            selectedColor = newValue!;
+                            _isLoading = true;
+                          });
+                          try {
+                            await MarkerServices.updateColorInMarker(
+                              id: data[index].id,
+                              color: selectedColor,
+                            );
 
-                      await context.read<MarkerProvider>().loadMarkers();
+                            await context.read<MarkerProvider>().loadMarkers();
 
-                      // _marketRateController.clear();
-                    } catch (e) {
-                      showAlert(context, e.toString());
-                    }
-                  },
-                  items: colors.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          child: CircleAvatar(
-                            backgroundColor:
-                                getColor(value), // Implement getColor onChanged
-                            radius: 16.0,
-                          ),
-                        ),
+                            // _marketRateController.clear();
+                          } catch (e) {
+                            showAlert(context, e.toString());
+                          }
+
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        },
+                        items: colors
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CircleAvatar(
+                                  backgroundColor: getColor(
+                                      value), // Implement getColor onChanged
+                                  radius: 16.0,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
-                ),
-                const Spacer(),
+                      const Spacer(),
 
-                if (context
-                    .read<DatasetProvider>()
-                    .datasets!
-                    .any((cor) => cor.latitude == data[index].latitude))
-                  TextButton(
-                    child: const Text('View Dataset'),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => DatasetPage(
-                            // Pass necessary parameters
-                            latitude: data[index].latitude,
-                            longitude: data[index]
-                                .longitude, // Set your desired longitude here
-                          ),
+                      if (context
+                          .read<DatasetProvider>()
+                          .datasets!
+                          .any((cor) => cor.latitude == data[index].latitude))
+                        TextButton(
+                          child: const Text('View Dataset'),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => DatasetPage(
+                                  // Pass necessary parameters
+                                  latitude: data[index].latitude,
+                                  longitude: data[index]
+                                      .longitude, // Set your desired longitude here
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      else
+                        TextButton(
+                          child: const Text('Create Dataset'),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => SelectBankPage(
+                                  lat: data[index].latitude,
+                                  lng: data[index].longitude,
+                                  dateTime: DateTime.now(),
+                                  marketRate: data[index].marketRate,
+                                  unit: data[index].unit,
+                                ),
+
+                                // AddDataSet(
+                                //   // Pass necessary parameters
+                                //   latitude: data['latitude'].toString(),
+                                //   longitude: data['longitude']
+                                //       .toString(), // Set your desired longitude here
+                                //   dateTime: DateTime.now(),
+                                //   marketRate: data['marketRate'],
+
+                                //   unit: data['unit'], // Set your desired unit here
+                                // ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  )
-                else
-                  TextButton(
-                    child: const Text('Create Dataset'),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => SelectBankPage(
-                            lat: data[index].latitude,
-                            lng: data[index].longitude,
-                            dateTime: DateTime.now(),
-                            marketRate: data[index].marketRate,
-                            unit: data[index].unit,
-                          ),
-
-                          // AddDataSet(
-                          //   // Pass necessary parameters
-                          //   latitude: data['latitude'].toString(),
-                          //   longitude: data['longitude']
-                          //       .toString(), // Set your desired longitude here
-                          //   dateTime: DateTime.now(),
-                          //   marketRate: data['marketRate'],
-
-                          //   unit: data['unit'], // Set your desired unit here
-                          // ),
-                        ),
-                      );
-                    },
+                      const SizedBox(width: 8),
+                      TextButton(
+                          onPressed: () {
+                            removeExistingMarker(data[index].id);
+                          },
+                          child: const Text(
+                            'Remove',
+                            style: TextStyle(color: Colors.red),
+                          )),
+                      const SizedBox(width: 8),
+                    ],
                   ),
-                const SizedBox(width: 8),
-                TextButton(
-                    onPressed: () {
-                      removeExistingMarker(data[index].id);
-                    },
-                    child: const Text(
-                      'Remove',
-                      style: TextStyle(color: Colors.red),
-                    )),
-                const SizedBox(width: 8),
-              ],
-            ),
           ],
         ),
       ),
@@ -745,7 +775,9 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> uploadNewMarkerData() async {
-    bool isLoading = true;
+    setState(() {
+      _isLoading = true;
+    });
 
     if (_coordinatesController.text.isEmpty) {
       showAlert(context, 'Empty fields!');
@@ -757,7 +789,14 @@ class _MapPageState extends State<MapPage> {
     latitude = double.parse(values[0].trim());
     longitude = double.parse(values[1].trim());
 
-    String _markerId = const Uuid().v1();
+    print('step 1');
+
+    if (latitude == 0.0 || longitude == 0.0) {
+      showAlert(context, 'Invalid coordinates!');
+      return;
+    }
+
+    print('step 2');
 
     try {
       myClient.Marker marker = myClient.Marker(
@@ -765,10 +804,12 @@ class _MapPageState extends State<MapPage> {
         latitude: latitude,
         longitude: longitude,
         marketRate: 0,
-        unit: "",
-        color: selectedColor,
+        unit: "SQM",
+        color: "red",
         createdAt: DateTime.now(),
       );
+
+      print('step 3');
 
       // (context)
       //     .read<MarkerProvider>()
@@ -776,19 +817,29 @@ class _MapPageState extends State<MapPage> {
 
       await MarkerServices.createMarker(context: context, marker: marker);
 
+      print('step 4');
+
       await context.read<MarkerProvider>().loadMarkers();
+
+      print('step 5');
+
       _coordinatesController.clear();
       _marketRateController.clear();
     } catch (e) {
       showAlert(context, e.toString());
       return;
     }
-    // showAlert(context, 'Marker created successfully!');
 
-    isLoading = false;
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   removeExistingMarker(int markerId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -826,9 +877,12 @@ class _MapPageState extends State<MapPage> {
 
       await MarkerServices.deleteMarkers(markerId);
     } catch (e) {
-      showAlert(context, e.toString());
+      print(e);
       return;
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   addPrice(int markerId) {
@@ -902,21 +956,7 @@ class _MapPageState extends State<MapPage> {
                   "Ok",
                 ),
                 onPressed: () async {
-                  Navigator.pop(context);
-                  try {
-                    await MarkerServices.updateRateInMarker(
-                      context: context,
-                      id: markerId,
-                      marketRate: int.parse(_marketRateController.text.trim()),
-                      unit: _selectedUnit,
-                    );
-
-                    await context.read<MarkerProvider>().loadMarkers();
-
-                    _marketRateController.clear();
-                  } catch (e) {
-                    showAlert(context, e.toString());
-                  }
+                  updateRate(markerId);
                 },
               )
             ],
@@ -924,6 +964,29 @@ class _MapPageState extends State<MapPage> {
         });
       },
     );
+  }
+
+  void updateRate(int markerId) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      await MarkerServices.updateRateInMarker(
+        id: markerId,
+        marketRate: int.parse(_marketRateController.text.trim()),
+        unit: _selectedUnit,
+      );
+
+      await context.read<MarkerProvider>().loadMarkers();
+
+      _marketRateController.clear();
+    } catch (e) {
+      print(e);
+    }
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.pop(context);
   }
 
   // void _showDuesDialog() {

@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../../Models/bank.dart';
 import '../../provider/bank_provider.dart';
-import '../../constants/utils.dart';
 import '../../widgets/custom_page2.dart';
 import '../../widgets/custom_textfield.dart';
 import 'add_dataset_page.dart';
@@ -36,6 +35,8 @@ class _SelectBankPageState extends State<SelectBankPage> {
   final TextEditingController _branchNameController = TextEditingController();
   final TextEditingController _ifscController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -90,6 +91,10 @@ class _SelectBankPageState extends State<SelectBankPage> {
                 onPressed: () async {
                   Navigator.pop(context);
 
+                  setState(() {
+                    _isLoading = true;
+                  });
+
                   try {
                     Bank bank = Bank(
                       id: 0,
@@ -97,20 +102,13 @@ class _SelectBankPageState extends State<SelectBankPage> {
                       branchName: _branchNameController.text.toUpperCase(),
                       ifscCode: _ifscController.text.toUpperCase(),
                     );
-                    BankServices.createBank(context, bank);
+                    await BankServices.createBank(context: context, bank: bank);
                   } catch (e) {
-                    showAlert(
-                      context,
-                      e.toString(),
-                    );
-
-                    return;
+                    print(e);
                   }
-
-                  showAlert(
-                    context,
-                    'Bank Added to Database!',
-                  );
+                  setState(() {
+                    _isLoading = false;
+                  });
                 },
               ),
             ],
@@ -122,6 +120,20 @@ class _SelectBankPageState extends State<SelectBankPage> {
   Widget build(BuildContext context) {
     return CustomPage2(
       pageTitle: 'Select Bank',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: () {
+            setState(() {
+              _isLoading = true;
+            });
+            Provider.of<BankProvider>(context, listen: false).loadBanks();
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      ],
       sidebar: Consumer<BankProvider>(builder: (
         context,
         bankProver,
@@ -163,8 +175,11 @@ class _SelectBankPageState extends State<SelectBankPage> {
                   TextButton(
                     onPressed: () {
                       addBank();
+                      bankProver.loadBanks();
                     },
-                    child: const Text('Add Bank'),
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('Add Bank'),
                   ),
                 ],
               ),
@@ -212,15 +227,25 @@ class _SelectBankPageState extends State<SelectBankPage> {
                         title: Text(
                             '${data.bankName.toString()} ${data.branchName.toString()}'),
                         subtitle: Text(data.ifscCode.toString()),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            BankServices.deleteBank(data.id);
-                            setState(() {
-                              bankProver.banks!.remove(data);
-                            });
-                          },
-                        ),
+                        trailing: _isLoading
+                            ? const CircularProgressIndicator()
+                            : IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+                                  BankServices.deleteBank(data.id);
+                                  setState(() {
+                                    bankProver.banks!.remove(data);
+                                  });
+                                  bankProver.loadBanks();
+
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                },
+                              ),
                       ),
                     );
                   },

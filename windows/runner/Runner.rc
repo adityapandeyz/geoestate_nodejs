@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "cloud.geoestate" "\0"
-            VALUE "FileDescription", "geoestate" "\0"
+            VALUE "FileDescription", "GeoEstate" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "geoestate" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 cloud.geoestate. All rights reserved." "\0"
+            VALUE "InternalName", "GeoEstate" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 GeoEstate. All rights reserved." "\0"
             VALUE "OriginalFilename", "geoestate.exe" "\0"
-            VALUE "ProductName", "geoestate" "\0"
+            VALUE "ProductName", "GeoEstate" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

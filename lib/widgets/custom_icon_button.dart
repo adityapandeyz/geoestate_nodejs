@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class CustomIconButton extends StatelessWidget {
   final IconData icon;
+  final bool isLoading;
   final String text;
   final VoidCallback ontap;
   const CustomIconButton({
@@ -12,6 +13,7 @@ class CustomIconButton extends StatelessWidget {
     required this.icon,
     required this.ontap,
     required this.text,
+    this.isLoading = false,
   });
 
   @override
@@ -24,9 +26,11 @@ class CustomIconButton extends StatelessWidget {
         ),
       ),
       onPressed: ontap,
-      icon: FaIcon(
-        icon,
-      ),
+      icon: isLoading == false
+          ? FaIcon(
+              icon,
+            )
+          : const CircularProgressIndicator(),
       label: Text(
         text,
         style: GoogleFonts.poppins(

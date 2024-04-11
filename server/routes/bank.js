@@ -27,19 +27,20 @@ bankRouter.post("/api/create-bank", async (req, res) => {
       ifscCode,
     } = req.body;
 
-    const existingBank = await prisma.bank.findFirst({where: { ifscCode: ifscCode },});
+    const existingBank = await prisma.bank.findFirst({  
+      where: { ifscCode: ifscCode },
+    });
 
     if(existingBank){
       return res.status(400).json({ msg: "Bank with the same IFSC Code already exists!" });
     }
 
     const createdBank = await prisma.bank.create({
-      data : {
-        bankName,
-        branchName,
-        ifscCode,
-       
-      }
+      data: {
+        bankName: bankName,
+        branchName: branchName,
+        ifscCode: ifscCode,
+      },
     });
 
     res.status(201).json(createdBank);

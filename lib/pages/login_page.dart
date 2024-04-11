@@ -12,7 +12,6 @@ import '../provider/auth_provider.dart';
 import '../constants/global_variables.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/inner_shadow_mod.dart';
-import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   static const String routeName = '/login-page';
@@ -28,6 +27,7 @@ class _LoginPageState extends State<LoginPage> {
   final dio = Dio();
 
   var isSignInButtonClicked = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -37,6 +37,38 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   final _loginFormKey = GlobalKey<FormState>();
+
+  void loginUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+    HapticFeedback.vibrate();
+
+    if (_loginFormKey.currentState!.validate()) {
+      try {
+        await AuthService.login(
+          context: context,
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+        // Navigator.of(context).pushNamedAndRemoveUntil(
+        //   HomePage.routeName,
+        //   (route) => false,
+        // );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$e',
+            ),
+          ),
+        );
+      }
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     InnerShadowMod(
                       child: Image.network(
-                        'https://images.unsplash.com/photo-1522678073884-26b1b87526e4?q=80&w=2135&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                        'https://images.unsplash.com/photo-1584972191378-d70853fc47fc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                         fit: BoxFit.cover,
                         //  height: double.infinity,
                         height: screenWidth < MediaQuery.of(context).size.width
@@ -92,16 +124,25 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const AppLogo(),
-                      const Text(
-                        "Geo tagging platform.",
-                        style: TextStyle(
-                          color: Colors.grey,
-                        ),
-                        textAlign: TextAlign.center,
+                      Image.asset(
+                        'assets/IconKitchen-Output/web/icon-512.png',
+                        height: 80,
                       ),
                       SizedBox(
+                        height: 10,
+                      ),
+                      const AppLogo(),
+                      SizedBox(
                         height: MediaQuery.of(context).size.height * 0.04,
+                      ),
+                      const Text(
+                        'Copyright © 2024. All Right Reserved.',
+                        style: TextStyle(
+                          color: Color.fromARGB(200, 177, 175, 175),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
                       ),
                       isSignInButtonClicked == false
                           ? CustomIconButton(
@@ -136,34 +177,9 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   CustomIconButton(
                                     icon: FontAwesomeIcons.user,
+                                    isLoading: _isLoading,
                                     ontap: () async {
-                                      HapticFeedback.vibrate();
-
-                                      if (_loginFormKey.currentState!
-                                          .validate()) {
-                                        try {
-                                          await AuthService.login(
-                                            context: context,
-                                            email: emailController.text.trim(),
-                                            password:
-                                                passwordController.text.trim(),
-                                          );
-                                          Navigator.of(context)
-                                              .pushNamedAndRemoveUntil(
-                                            HomePage.routeName,
-                                            (route) => false,
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                '$e',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      }
+                                      loginUser();
                                     },
                                     text: 'Login',
                                   ),
