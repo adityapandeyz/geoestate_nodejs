@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 class Dataset {
   String refNo;
   String bankName;
@@ -14,6 +15,7 @@ class Dataset {
   String colorMark;
   DateTime dateOfVisit;
   int id;
+  String entryBy;
 
   Dataset({
     required this.refNo,
@@ -28,9 +30,10 @@ class Dataset {
     required this.unit,
     required this.createdAt,
     required this.remarks,
-    required this.id,
-    required this.dateOfVisit,
     required this.colorMark,
+    required this.dateOfVisit,
+    required this.id,
+    required this.entryBy,
   });
 
   Dataset copyWith(
@@ -50,6 +53,7 @@ class Dataset {
     int? id,
     DateTime? dateOfVisit,
     String? colorMark,
+    String? entryBy,
   }) {
     return Dataset(
       refNo: refNo ?? this.refNo,
@@ -67,6 +71,7 @@ class Dataset {
       id: id ?? this.id,
       dateOfVisit: dateOfVisit ?? this.dateOfVisit,
       colorMark: colorMark ?? this.colorMark,
+      entryBy: entryBy ?? this.entryBy,
     );
   }
 
@@ -88,6 +93,7 @@ class Dataset {
       dateOfVisit:
           DateTime.tryParse(map['dateOfVisit'] ?? '') ?? DateTime.now(),
       colorMark: map['colorMark'] ?? '',
+      entryBy: map['entryBy'],
     );
   }
 
@@ -107,6 +113,7 @@ class Dataset {
       'id': id,
       'dateOfVisit': dateOfVisit.toIso8601String(), // Convert to ISO string
       'colorMark': colorMark,
+      'entryBy': entryBy,
     };
   }
 }

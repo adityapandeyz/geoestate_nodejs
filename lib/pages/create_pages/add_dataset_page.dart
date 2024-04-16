@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../Models/dataset.dart';
 import '../../constants/utils.dart';
+import '../../provider/auth_provider.dart';
 import '../../services/dataset_services.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_page2.dart';
@@ -387,7 +388,19 @@ Longitude: ${widget.longitude}°E""",
                       }
                       uploadData();
                     },
-                  )
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'Entry by: ${context.read<AuthProvider>().user.email}',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -426,9 +439,12 @@ Longitude: ${widget.longitude}°E""",
         remarks: remarksController.text.toUpperCase(),
         createdAt: DateTime.now(),
         colorMark: getColorInfo(selectedColor).name.toUpperCase(),
+        entryBy: context.read<AuthProvider>().user.email,
       );
 
       await DatasetServices.createDataset(context: context, dataset: dataset);
+
+      await context.read<DatasetProvider>().loadDatasets();
     } catch (e) {
       showAlert(context, e.toString());
     }

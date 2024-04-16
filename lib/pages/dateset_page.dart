@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geoestate/provider/auth_provider.dart';
 import 'package:geoestate/services/dataset_services.dart';
 
 import 'package:intl/intl.dart';
@@ -303,6 +304,7 @@ class _DatasetPageState extends State<DatasetPage> {
                             // DataColumn(label: Text('Date of Valuation')),
                             DataColumn(label: Text('Date of Visit')),
                             DataColumn(label: Text('Remarks')),
+                            DataColumn(label: Text('Entry By')),
                             DataColumn(label: Text('Edit')),
                             DataColumn(label: Text('Remove Data')),
                           ],
@@ -416,6 +418,9 @@ class _DatasetPageState extends State<DatasetPage> {
                                   DataCell(Text(
                                     data[index].remarks.toString(),
                                   )),
+                                  DataCell(Text(
+                                    data[index].entryBy.toString(),
+                                  )),
                                   DataCell(SizedBox(
                                     child: TextButton(
                                       child: const Text('Edit'),
@@ -445,6 +450,7 @@ class _DatasetPageState extends State<DatasetPage> {
                                               .createdAt, // Keep existing createdAt
                                           dateOfVisit: data[index]
                                               .dateOfVisit, // Keep existing dateOfVisit
+                                          entryBy: data[index].entryBy,
                                         );
                                       },
                                     ),
@@ -514,6 +520,7 @@ class _DatasetPageState extends State<DatasetPage> {
     required String colorMark,
     required DateTime dateOfVisit,
     required int id,
+    required String entryBy,
   }) {
     return showDialog(
       context: context,
@@ -645,6 +652,7 @@ class _DatasetPageState extends State<DatasetPage> {
                       colorMark: colorMark,
                       dateOfVisit: dateOfVisit,
                       id: id,
+                      entryBy: entryBy,
                     );
 
                     // Update specific fields if they are not empty
@@ -724,6 +732,8 @@ class _DatasetPageState extends State<DatasetPage> {
         id: dataset.id,
         dataset: updatedDataset,
       );
+
+      await context.read<DatasetProvider>().loadDatasets();
     } catch (e) {
       showAlert(context, e.toString());
     }
@@ -771,6 +781,8 @@ class _DatasetPageState extends State<DatasetPage> {
 
       // context.read<DatasetProvider>().deleteDataset(dataset);
       await DatasetServices.deleteDataset(datasetId);
+
+      await context.read<DatasetProvider>().loadDatasets();
     } catch (e) {
       showAlert(context, e.toString());
       return;

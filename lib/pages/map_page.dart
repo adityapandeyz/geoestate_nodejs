@@ -53,6 +53,8 @@ class _MapPageState extends State<MapPage> {
   bool isAdmin = false;
   late String _selectedUnit = "SQFT";
 
+  bool showMenu = true;
+
   @override
   void dispose() {
     _coordinatesController.dispose();
@@ -168,375 +170,358 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () => context.read<MarkerProvider>().loadMarkers(),
-      child: Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          title: const Text('Map'),
-          actions: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButton(
-                  value: selectedMapType,
-                  items: dropdownItems,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedMapType = newValue!;
-                    });
-                  },
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () {
-                    setState(() {
-                      _isLoading = true;
-                    });
-                    context.read<MarkerProvider>().loadMarkers();
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: const Text('Map'),
+        actions: [
+          DropdownButton(
+            value: selectedMapType,
+            items: dropdownItems,
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedMapType = newValue!;
+              });
+            },
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _isLoading = true;
+              });
+              context.read<MarkerProvider>().loadMarkers();
 
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  },
-                ),
-                // const SizedBox(
-                //   width: 10,
-                // ),
-                // IconButton(
-                //   onPressed: () {
-                //     viewDues();
-                //   },
-                //   icon: const Icon(FontAwesomeIcons.calendarCheck),
-                // ),
-              ],
-            ),
-          ],
-        ),
-        body: Consumer<MarkerProvider>(builder: (
-          context,
-          markersProvider,
-          child,
-        ) {
-          List<Marker> allMarkers = [];
+              setState(() {
+                _isLoading = false;
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.menu), // Drawer icon
+            onPressed: () {
+              setState(() {
+                if (showMenu == false) {
+                  showMenu = true;
+                } else {
+                  showMenu = false;
+                }
+              });
+            },
+          ),
+        ],
+      ),
+      body: Consumer<MarkerProvider>(builder: (
+        context,
+        markersProvider,
+        child,
+      ) {
+        List<Marker> allMarkers = [];
 
-          if (markersProvider.markers != null) {
-            allMarkers.addAll(
-              markersProvider.markers!.map(
-                (doc) {
-                  return Marker(
-                    point: LatLng(doc.latitude, doc.longitude),
-                    width: 180,
-                    height: 32,
-                    child: CustomMarkerWidget(
-                      lat: doc.latitude,
-                      lng: doc.longitude,
-                      price: doc.marketRate,
-                      unit: doc.unit,
-                      color: doc.color,
-                      onTap: () {
-                        setState(() {
-                          _searchController.value = TextEditingValue(
-                            text: '${doc.latitude}',
-                          );
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-          if (searchMarkers.isNotEmpty) {
-            allMarkers.addAll(
-              searchMarkers.map((searchMarker) {
+        if (markersProvider.markers != null) {
+          allMarkers.addAll(
+            markersProvider.markers!.map(
+              (doc) {
                 return Marker(
-                  point: LatLng(searchMarker.latitude, searchMarker.longitude),
-                  width: 80,
-                  height: 80,
-                  child: const Icon(
-                    Icons.location_on,
-                    color: Colors.red,
-                    size: 60,
+                  point: LatLng(doc.latitude, doc.longitude),
+                  width: 180,
+                  height: 32,
+                  child: CustomMarkerWidget(
+                    lat: doc.latitude,
+                    lng: doc.longitude,
+                    price: doc.marketRate,
+                    unit: doc.unit,
+                    color: doc.color,
+                    onTap: () {
+                      setState(() {
+                        _searchController.value = TextEditingValue(
+                          text: '${doc.latitude}',
+                        );
+                      });
+                    },
                   ),
                 );
-              }),
-            );
-          }
-
-          return Stack(
-            alignment: AlignmentDirectional.centerEnd,
-            children: [
-              SizedBox(
-                width: double.maxFinite,
-                child: FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    initialCenter: LatLng(
-                      double.parse(widget.latitude),
-                      double.parse(
-                        widget.longitude,
-                      ),
-                    ),
-                    initialZoom: widget.zoom == 5 ? 5.0 : 19.0,
-                    maxZoom: 19.5,
-                    minZoom: 5,
-                  ),
-                  children: [
-                    getTileLayer(selectedMapType),
-                    MarkerLayer(markers: allMarkers),
-                    RichAttributionWidget(
-                      animationConfig:
-                          const ScaleRAWA(), // Or `FadeRAWA` as is default
-                      attributions: [
-                        TextSourceAttribution(
-                          'Mapbox',
-                          onTap: () => launchUrl(
-                            Uri.parse('https://www.mapbox.com/about/maps/'),
-                          ),
-                        ),
-                        TextSourceAttribution(
-                          'OpenStreetMap contributors',
-                          onTap: () => launchUrl(Uri.parse(
-                              'hhttps://www.openstreetmap.org/about/')),
-                        ),
-                        TextSourceAttribution(
-                          'Improve this map',
-                          onTap: () => launchUrl(Uri.parse(
-                              'https://www.mapbox.com/map-feedback/#/-74.5/40/10')),
-                          prependCopyright: false,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              sideBar(context),
-            ],
+              },
+            ),
           );
-        }),
-      ),
+        }
+        if (searchMarkers.isNotEmpty) {
+          allMarkers.addAll(
+            searchMarkers.map((searchMarker) {
+              return Marker(
+                point: LatLng(searchMarker.latitude, searchMarker.longitude),
+                width: 80,
+                height: 80,
+                child: const Icon(
+                  Icons.location_on,
+                  color: Colors.red,
+                  size: 60,
+                ),
+              );
+            }),
+          );
+        }
+
+        return Stack(
+          alignment: AlignmentDirectional.centerEnd,
+          children: [
+            SizedBox(
+              width: double.maxFinite,
+              child: FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
+                  initialCenter: LatLng(
+                    double.parse(widget.latitude),
+                    double.parse(
+                      widget.longitude,
+                    ),
+                  ),
+                  initialZoom: widget.zoom == 5 ? 5.0 : 19.0,
+                  maxZoom: 19.5,
+                  minZoom: 5,
+                ),
+                children: [
+                  getTileLayer(selectedMapType),
+                  MarkerLayer(markers: allMarkers),
+                  RichAttributionWidget(
+                    animationConfig:
+                        const ScaleRAWA(), // Or `FadeRAWA` as is default
+                    attributions: [
+                      TextSourceAttribution(
+                        'Mapbox',
+                        onTap: () => launchUrl(
+                          Uri.parse('https://www.mapbox.com/about/maps/'),
+                        ),
+                      ),
+                      TextSourceAttribution(
+                        'OpenStreetMap contributors',
+                        onTap: () => launchUrl(
+                            Uri.parse('hhttps://www.openstreetmap.org/about/')),
+                      ),
+                      TextSourceAttribution(
+                        'Improve this map',
+                        onTap: () => launchUrl(Uri.parse(
+                            'https://www.mapbox.com/map-feedback/#/-74.5/40/10')),
+                        prependCopyright: false,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (showMenu) sidebar(context) else SizedBox(),
+          ],
+        );
+      }),
     );
   }
 
-  sideBar(BuildContext context) {
+  Container sidebar(BuildContext context) {
     return Container(
-      width: 540,
-      decoration: const BoxDecoration(
-        color: AppColors.greyBackColor,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(21.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Create Marker',
-                  style: GoogleFonts.poppins(
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+      width: 500,
+      color: AppColors.backgroundColor,
+      child: ListView(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        children: [
+          const SizedBox(
+            height: 20,
+          ),
+          Text(
+            'Markers',
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          CustomTextfield(
+            title: 'Coordinates(,)',
+            controller: _coordinatesController,
+            onChanged: (value) {},
+            suffix: _coordinatesController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(
+                      FontAwesomeIcons.close,
                     ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                CustomTextfield(
-                  title: 'Coordinates(,)',
-                  controller: _coordinatesController,
-                  onChanged: (value) {
-                    searchMarkers.clear();
-                  },
-                  suffix: _coordinatesController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(
-                            FontAwesomeIcons.close,
-                          ),
-                          onPressed: () {
-                            searchMarkers.clear();
-                            _coordinatesController.clear();
-                            mapController.move(
-                              LatLng(
-                                double.parse('20.5937'),
-                                double.parse('78.9629'),
-                              ),
-                              5,
-                            );
+                    onPressed: () {
+                      searchMarkers.clear();
+                      _coordinatesController.clear();
+                      _searchController.clear();
+                      mapController.move(
+                        LatLng(
+                          double.parse('20.5937'),
+                          double.parse('78.9629'),
+                        ),
+                        5,
+                      );
 
-                            setState(() {});
-                          },
-                        )
-                      : const SizedBox(),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: CustomButton(
-                        text: 'Search',
-                        onClick: () {
-                          if (_coordinatesController.text.isEmpty) {
-                            showAlert(context, 'Empty fields!');
-                            return;
-                          }
-
-                          List values = _coordinatesController.text.split(',');
-
-                          latitude = double.parse(values[0].trim());
-                          longitude = double.parse(values[1].trim());
-
-                          setState(() {});
-
-                          if (_coordinatesController.text.isNotEmpty) {
-                            _searchCoordiantes(
-                                latitude.toString(), longitude.toString());
-                            setState(() {
-                              isSearching = true;
-                            });
-                            addSearchMarker();
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                        child: CustomButton(
-                      text: 'Create Marker',
-                      isLoading: _isLoading,
-                      onClick: () {
-                        searchMarkers.clear();
-                        isSearching = false;
-
-                        uploadNewMarkerData();
-                      },
-                    )),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            const Divider(),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              children: [
-                Text(
-                  'Existing Markers',
-                  style: GoogleFonts.poppins(
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isDescending = !isDescending;
-                    });
-                  },
-                  icon: Icon(isDescending
-                      ? Icons.arrow_downward_rounded
-                      : Icons.arrow_upward_rounded),
-                )
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomTextfield(
-                    title: 'Search',
-                    suffix: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                          )
-                        : SizedBox(),
-                    controller: _searchController,
-                    onChanged: (value) {
                       setState(() {});
                     },
+                  )
+                : const SizedBox(),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: CustomButton(
+                  text: 'Search',
+                  onClick: () {
+                    if (_coordinatesController.text.isEmpty) {
+                      showAlert(context, 'Empty fields!');
+                      return;
+                    }
+
+                    List values = _coordinatesController.text.split(',');
+
+                    latitude = double.parse(values[0].trim());
+                    longitude = double.parse(values[1].trim());
+
+                    _searchController.value = TextEditingValue(
+                      text: latitude.toString(),
+                    );
+
+                    if (_coordinatesController.text.isNotEmpty) {
+                      _searchCoordiantes(
+                          latitude.toString(), longitude.toString());
+
+                      setState(() {
+                        isSearching = true;
+                      });
+                      addSearchMarker();
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: CustomButton(
+                  text: 'Create Marker',
+                  isLoading: _isLoading,
+                  onClick: () {
+                    searchMarkers.clear();
+                    isSearching = false;
+
+                    uploadNewMarkerData();
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          const Divider(),
+          const SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Existing Markers',
+                style: GoogleFonts.poppins(
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Consumer<MarkerProvider>(
-              builder: (context, markerProvider, child) {
-                if (markerProvider.markers != null) {
-                  noDataIcon();
-                }
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    isDescending = !isDescending;
+                  });
+                },
+                icon: Icon(isDescending
+                    ? Icons.arrow_downward_rounded
+                    : Icons.arrow_upward_rounded),
+              )
+            ],
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          CustomTextfield(
+            title: 'Search',
+            suffix: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {});
+                    },
+                  )
+                : SizedBox(),
+            controller: _searchController,
+            onChanged: (value) {
+              setState(() {});
+            },
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Consumer<MarkerProvider>(
+            builder: (context, markerProvider, child) {
+              if (markerProvider.markers != null) {
+                noDataIcon();
+              }
 
-                // Extract data from the snapshot
-                final List<myClient.Marker> documents = markerProvider.markers!;
+              // Extract data from the snapshot
+              final List<myClient.Marker> documents = markerProvider.markers!;
 
-                final filteredData = documents.where((doc) {
-                  final docLatitude = doc.latitude.toString();
+              final filteredData = documents.where((doc) {
+                final docLatitude = doc.latitude.toString();
 
-                  final docLongitude = doc.longitude.toString();
+                final docLongitude = doc.longitude.toString();
 
-                  final docMarketRate = doc.marketRate.toString();
+                final docMarketRate = doc.marketRate.toString();
 
-                  final searchQuery = _searchController.text.toLowerCase();
+                final searchQuery = _searchController.text.toLowerCase();
 
-                  return docLatitude.contains(searchQuery) ||
-                      docMarketRate.contains(searchQuery) ||
-                      docLongitude.contains(searchQuery);
-                }).toList();
+                return docLatitude.contains(searchQuery) ||
+                    docMarketRate.contains(searchQuery) ||
+                    docLongitude.contains(searchQuery);
+              }).toList();
 
-                if (!isDescending) {
-                  filteredData
-                      .sort((a, b) => a.marketRate.compareTo(b.marketRate));
-                } else {
-                  filteredData
-                      .sort((a, b) => b.marketRate.compareTo(a.marketRate));
-                }
+              if (!isDescending) {
+                filteredData
+                    .sort((a, b) => a.marketRate.compareTo(b.marketRate));
+              } else {
+                filteredData
+                    .sort((a, b) => b.marketRate.compareTo(a.marketRate));
+              }
 
-                if (filteredData.isEmpty) {
-                  return noDataIcon();
-                }
-                return Expanded(
-                    child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: filteredData.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    List<myClient.Marker> data = filteredData.toList();
+              if (filteredData.isEmpty) {
+                return noDataIcon();
+              }
+              return ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: filteredData.length,
+                itemBuilder: (BuildContext context, int index) {
+                  List<myClient.Marker> data = filteredData.toList();
 
-                    return customMarkerTile(data, index, context);
-                  },
-                ));
-              },
-            ),
-          ],
-        ),
+                  return customMarkerTile(data, index, context);
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -822,6 +807,14 @@ class _MapPageState extends State<MapPage> {
       await context.read<MarkerProvider>().loadMarkers();
 
       print('step 5');
+
+      mapController.move(
+        LatLng(
+          latitude,
+          longitude,
+        ),
+        18,
+      );
 
       _coordinatesController.clear();
       _marketRateController.clear();

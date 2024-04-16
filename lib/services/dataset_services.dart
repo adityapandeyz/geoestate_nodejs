@@ -37,6 +37,7 @@ class DatasetServices {
           final colorMark = e['colorMark'] as String;
           final dateOfVisitString = e['dateOfVisit'] as String;
           final id = e['id'] as int;
+          final entryBy = e['entryBy'].toString();
 
           final createdAt = DateTime.parse(createdAtString);
           final dateOfVisit = DateTime.parse(dateOfVisitString);
@@ -57,6 +58,7 @@ class DatasetServices {
             colorMark: colorMark,
             dateOfVisit: dateOfVisit,
             id: id,
+            entryBy: entryBy,
           );
         }).toList();
 
@@ -94,6 +96,7 @@ class DatasetServices {
                 'remarks': dataset.remarks,
                 'colorMark': dataset.colorMark ?? '',
                 'dateOfVisit': dataset.dateOfVisit.toIso8601String(),
+                'entryBy': userProvider.user.email,
               }),
               headers: {
             'Content-Type': 'application/json; charset=UTF-8',

@@ -32,6 +32,7 @@ datasetRouter.post("/api/create-dataset", async (req, res) => {
       remarks,
       colorMark,
       dateOfVisit,
+      entryBy,
     } = req.body;
 
     const existingDataset = await prisma.dataset.findFirst({
@@ -63,6 +64,7 @@ datasetRouter.post("/api/create-dataset", async (req, res) => {
         remarks: remarks,
         colorMark: colorMark,
         dateOfVisit: parsedDateOfVisit,
+        entryBy: entryBy,
       },
     });
 

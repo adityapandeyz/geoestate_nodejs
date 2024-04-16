@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-
 class AuthService {
   // void loginUser({
   //   required String email,
@@ -167,16 +166,23 @@ class AuthService {
         userProvider.setUser(userRes.body);
       }
 
-      httpErrorHandle(
-        response: response,
-        context: context,
-        onSuccess: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
+      // httpErrorHandle(
+      //   response: response,
+      //   context: context,
+      //   onSuccess: () async {
+      //     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-          await prefs.setString(
-              'x-auth-token', jsonDecode(response.body)['token']);
-        },
-      );
+      //     await prefs.setString(
+      //         'x-auth-token', jsonDecode(response.body)['token']);
+      //   },
+      // );
+
+      if (response.hashCode == 201) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+
+        await prefs.setString(
+            'x-auth-token', jsonDecode(response.body)['token']);
+      }
     } catch (e) {
       showAlert(context, e.toString());
     }

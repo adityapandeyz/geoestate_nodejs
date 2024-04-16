@@ -5,6 +5,7 @@ import 'package:geoestate/pages/dateset_page.dart';
 import 'package:geoestate/pages/login_page.dart';
 import 'package:geoestate/pages/map_page.dart';
 import 'package:geoestate/provider/auth_provider.dart';
+import 'package:geoestate/services/auth_services.dart';
 import 'package:geoestate/widgets/app_logo.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +20,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  AuthService authService = AuthService();
+
+  @override
+  void initState() {
+    authService.getUserData(context);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
