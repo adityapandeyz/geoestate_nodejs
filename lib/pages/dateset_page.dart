@@ -4,6 +4,7 @@ import 'package:geoestate/services/dataset_services.dart';
 
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:data_table_2/data_table_2.dart';
 
 import '../Models/dataset.dart';
 import '../provider/dataset_provider.dart';
@@ -11,498 +12,136 @@ import '../constants/utils.dart';
 import '../widgets/custom_textfield.dart';
 import 'map_page.dart';
 
-class DatasetPage extends StatefulWidget {
-  static const String routeName = '/dataset';
+List<String> colors = [
+  'red',
+  'orange',
+  'green',
+  'blue',
+  'yellow',
+  'white',
+  'purple',
+  'indigo'
+];
 
-  final double latitude;
-  final double longitude;
-
-  const DatasetPage({
-    super.key,
-    this.latitude = 0.0,
-    this.longitude = 0.0,
-  });
-
-  @override
-  _DatasetPageState createState() => _DatasetPageState();
+Color getColor(String colorName) {
+  switch (colorName) {
+    case 'red':
+      return Colors.red;
+    case 'orange':
+      return Colors.orange;
+    case 'green':
+      return Colors.green;
+    case 'blue':
+      return Colors.blue;
+    case 'yellow':
+      return Colors.yellow;
+    case 'purple':
+      return Colors.purple;
+    case 'indigo':
+      return Colors.indigo;
+    default:
+      return Colors.white; // Default color
+  }
 }
 
-class _DatasetPageState extends State<DatasetPage> {
-  late TextEditingController _searchController;
+DateTime _selectedDate = DateTime.now();
+bool _isLoading = false;
+int _pageSize = 10;
+String selectedColor = 'white'; // Default selected color
 
-  @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController();
-  }
+TextEditingController updatePartyNameController = TextEditingController();
+TextEditingController updaterefNoController = TextEditingController();
 
-  TextEditingController updatePartyNameController = TextEditingController();
-  TextEditingController updaterefNoController = TextEditingController();
+TextEditingController updateColonyNameController = TextEditingController();
+TextEditingController updateCityVillageNameController = TextEditingController();
+TextEditingController updateMarketRateController = TextEditingController();
+TextEditingController updateRemarksController = TextEditingController();
+TextEditingController updateUnitController = TextEditingController();
 
-  TextEditingController updateColonyNameController = TextEditingController();
-  TextEditingController updateCityVillageNameController =
-      TextEditingController();
-  TextEditingController updateMarketRateController = TextEditingController();
-  TextEditingController updateRemarksController = TextEditingController();
-  TextEditingController updateUnitController = TextEditingController();
+bool isLoading = false;
 
-  DateTime _selectedDate = DateTime.now();
-  bool _isLoading = false;
-
-  Future<void> _selectDate(
-      BuildContext context, DateTime initDate, int id) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2101),
-    );
-
-    if (picked != null && picked != initDate) {
-      setState(() {
-        _selectedDate = picked;
-
-        _updateDateOnFirestore(id);
-      });
-    }
-  }
-
-  Future<void> _updateDateOnFirestore(int id) async {
-    setState(() {
-      _isLoading = true;
-    });
+void _selectDate(BuildContext context, DateTime date, int id) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: date,
+    firstDate: DateTime(2015, 8),
+    lastDate: DateTime(2101),
+  );
+  if (picked != null && picked != date) {
+    _selectedDate = picked;
     try {
       await DatasetServices.updateDateOfVisit(
         id: id,
         dateOfVisit: _selectedDate,
       );
-      await (context).read<DatasetProvider>().loadDatasets();
+
+      await context.read<DatasetProvider>().loadDatasets();
     } catch (e) {
-      showAlert(context, e.toString());
-    }
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    updaterefNoController.dispose();
-    updatePartyNameController.dispose();
-    updateColonyNameController.dispose();
-    updateCityVillageNameController.dispose();
-    updateMarketRateController.dispose();
-    updateUnitController.dispose();
-    updateRemarksController.dispose();
-
-    super.dispose();
-  }
-
-  // _selectDateRange(context) {
-  //   return showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return StatefulBuilder(builder: (context, setState) {
-  //         return ContentDialog(
-  //           title: const Text(
-  //             "Select Date Range for Exporting!",
-  //             style: TextStyle(fontSize: 16),
-  //           ),
-  //           content:
-  //           ],
-  //         );
-  //       });
-  //     },
-  //   );
-  // }
-
-  String selectedColor = 'white'; // Default selected color
-  List<String> colors = [
-    'red',
-    'orange',
-    'green',
-    'blue',
-    'yellow',
-    'white',
-    'purple',
-    'indigo'
-  ];
-
-  Color getColor(String colorName) {
-    switch (colorName) {
-      case 'red':
-        return Colors.red;
-      case 'orange':
-        return Colors.orange;
-      case 'green':
-        return Colors.green;
-      case 'blue':
-        return Colors.blue;
-      case 'yellow':
-        return Colors.yellow;
-      case 'purple':
-        return Colors.purple;
-      case 'indigo':
-        return Colors.indigo;
-      default:
-        return Colors.white; // Default color
+      print(e);
     }
   }
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('View Existing Datasets'),
+void removeExistingDataset(int id, context, setState) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text(
+          "Remove Dataset",
+          style: TextStyle(fontSize: 16),
+        ),
+        content: const Text(
+          "Are you sure you want to remove this dataset?",
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
+          TextButton(
+            child: const Text(
+              "Cancel",
+            ),
             onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          ElevatedButton(
+            child: _isLoading
+                ? const CircularProgressIndicator()
+                : const Text(
+                    "Remove",
+                  ),
+            onPressed: () async {
               setState(() {
                 _isLoading = true;
               });
-              context.read<DatasetProvider>().loadDatasets();
+              try {
+                await DatasetServices.deleteDataset(id);
+
+                await context.read<DatasetProvider>().loadDatasets();
+              } catch (e) {
+                print(e);
+              }
 
               setState(() {
                 _isLoading = false;
               });
+              Navigator.pop(context);
             },
-          ),
+          )
         ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 10,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.1),
-                    spreadRadius: 2,
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  const Icon(
-                    Icons.search,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: CustomTextfield(
-                      title:
-                          'Search [Ref No., Bank Name, Branch Name, Colony Name, City/Village Name]',
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(
-                            () {}); // Trigger a rebuild when search input changes
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
+      );
+    },
+  );
+}
 
-                  // const m.VerticalDivider(
-                  //   thickness: 5,
-                  //   width: 5,
-                  //   color: Color.fromARGB(255, 18, 19, 19),
-                  // ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-
-            // Data Table
-            Consumer<DatasetProvider>(
-              builder: (context, datasetProvider, child) {
-                final filteredData = datasetProvider.datasets!.where((doc) {
-                  if (widget.longitude != 0.0) {
-                    final double docLongitude = doc.longitude;
-                    return docLongitude == widget.longitude;
-                  }
-                  final docBankName = doc.bankName.toString().toLowerCase();
-                  final docBranchName = doc.branchName.toString().toLowerCase();
-                  final partyName = doc.partyName.toString().toLowerCase();
-                  final docColonyName = doc.colonyName.toString().toLowerCase();
-                  final docCityVillageName =
-                      doc.cityVillageName.toString().toLowerCase();
-                  final docRefNo = doc.refNo.toString().toLowerCase();
-                  final searchQuery = _searchController.text.toLowerCase();
-
-                  final searchTerms = searchQuery.split(' ');
-
-                  return searchTerms.every(
-                    (term) =>
-                        docBankName.contains(term) ||
-                        docBranchName.contains(term) ||
-                        partyName.contains(term) ||
-                        docColonyName.contains(term) ||
-                        docCityVillageName.contains(term) ||
-                        docRefNo.contains(term),
-                  );
-                }).toList();
-
-                if (filteredData.isEmpty) {
-                  return noDataIcon();
-                }
-                return Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Card(
-                      elevation: 6,
-                      // decoration: BoxDecoration(
-                      //   // color: FluentTheme.of(context).activeColor,
-                      //   borderRadius: BorderRadius.circular(16),
-                      //   boxShadow: [
-                      //     BoxShadow(
-                      //       color: Colors.white.withOpacity(0.2),
-                      //       spreadRadius: 2,
-                      //       blurRadius: 8,
-                      //       offset: const Offset(0, 3),
-                      //     ),
-                      //   ],
-                      // ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        // physics: ClampingScrollPhysics(),
-                        child: DataTable(
-                          columnSpacing: 12,
-                          horizontalMargin: 12,
-                          headingRowColor: MaterialStateProperty.all(
-                            const Color.fromARGB(255, 163, 163, 163),
-                          ),
-                          columns: const [
-                            DataColumn(label: Text('S. No.')),
-                            DataColumn(label: Text('Ref. No.')),
-                            DataColumn(label: Text('Bank Name')),
-                            DataColumn(label: Text('Branch Name')),
-                            DataColumn(label: Text('Party Name')),
-                            DataColumn(label: Text('Colony Name')),
-                            DataColumn(label: Text('City/Village Name')),
-                            DataColumn(label: Text('Coordinates')),
-                            DataColumn(label: Text('Market Rate (₹)')),
-                            DataColumn(label: Text('Unit (per)')),
-                            // DataColumn(label: Text('Date of Valuation')),
-                            DataColumn(label: Text('Date of Visit')),
-                            DataColumn(label: Text('Remarks')),
-                            DataColumn(label: Text('Entry By')),
-                            DataColumn(label: Text('Edit')),
-                            DataColumn(label: Text('Remove Data')),
-                          ],
-                          rows: List<DataRow>.generate(
-                            filteredData.length,
-                            (index) {
-                              List<Dataset> data = filteredData.toList();
-
-                              return DataRow(
-                                color:
-                                    MaterialStateProperty.resolveWith<Color?>(
-                                  (Set<MaterialState> states) {
-                                    return getColor(data[index]
-                                            .colorMark
-                                            .toString()
-                                            .toLowerCase())
-                                        .withOpacity(0.6);
-                                  },
-                                ),
-                                cells: [
-                                  DataCell(
-                                    Text(
-                                      data[index].id.toString(),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      data[index].refNo.toString(),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      data[index].bankName.toString(),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      data[index].branchName.toString(),
-                                    ),
-                                  ),
-                                  DataCell(
-                                      SizedBox(
-                                        width: 250,
-                                        child: Text(
-                                          data[index].partyName.toString(),
-                                        ),
-                                      ), onTap: () {
-                                    // _navigateToNextPage(context,
-                                    //     refNo: data['refNo'],
-                                    //     partyName: data['partyName'],
-                                    //     address:
-                                    //         '${data['colonyName']}, ${data['cityVillageName']}',
-                                    //     billId: data['billId'],
-                                    //     bankName: data['bankName'],
-                                    //     branchName: data['branchName']);
-                                  }),
-                                  DataCell(Text(
-                                    data[index].colonyName.toString(),
-                                  )),
-                                  DataCell(Text(
-                                      data[index].cityVillageName.toString())),
-                                  DataCell(
-                                    Text(
-                                      '${data[index].latitude}°N, ${data[index].longitude}°E',
-                                    ),
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => MapPage(
-                                            latitude:
-                                                data[index].latitude.toString(),
-                                            longitude:
-                                                data[index].latitude.toString(),
-                                            zoom: 20,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  DataCell(
-                                      Text(data[index].marketRate.toString())),
-                                  DataCell(Text(data[index].unit.toString())),
-                                  // DataCell(Text(DateFormat('yyyy-MM-dd')
-                                  //     .format(data['dateOfValuation'].toDate())
-                                  //     .toString())),
-                                  _isLoading
-                                      ? DataCell(
-                                          CircularProgressIndicator(),
-                                        )
-                                      : DataCell(
-                                          Row(
-                                            children: [
-                                              Text(
-                                                DateFormat('dd-MM-yyyy').format(
-                                                  data[index].dateOfVisit,
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  _selectDate(
-                                                    context,
-                                                    data[index].dateOfVisit,
-                                                    data[index].id,
-                                                  );
-                                                },
-                                                icon: const Icon(Icons.edit),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                  DataCell(Text(
-                                    data[index].remarks.toString(),
-                                  )),
-                                  DataCell(Text(
-                                    data[index].entryBy.toString(),
-                                  )),
-                                  DataCell(SizedBox(
-                                    child: TextButton(
-                                      child: const Text('Edit'),
-                                      onPressed: () {
-                                        updateDataset(
-                                          id: data[index].id,
-                                          refNo: data[index].refNo,
-                                          partyName: data[index].partyName,
-                                          colonyName: data[index].colonyName,
-                                          cityVillageName:
-                                              data[index].cityVillageName,
-                                          marketRate: data[index].marketRate,
-                                          unit: data[index].unit,
-                                          remarks: data[index].remarks,
-                                          colorMark: data[index].colorMark,
-                                          // Keep existing datasetName
-                                          bankName: data[index]
-                                              .bankName, // Keep existing bankName
-                                          latitude: data[index]
-                                              .latitude, // Keep existing latitude
-                                          branchName: data[index]
-                                              .branchName, // Keep existing branchName
-                                          longitude: data[index]
-                                              .longitude, // Keep existing longitude
-
-                                          createdAt: data[index]
-                                              .createdAt, // Keep existing createdAt
-                                          dateOfVisit: data[index]
-                                              .dateOfVisit, // Keep existing dateOfVisit
-                                          entryBy: data[index].entryBy,
-                                        );
-                                      },
-                                    ),
-                                  )),
-                                  DataCell(SizedBox(
-                                    child: TextButton(
-                                        child: const Text(
-                                          'Remove',
-                                          style: TextStyle(
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          removeExistingDataset(
-                                            data[index].id,
-                                          );
-                                        }),
-                                  )),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ));
-              },
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Route _popupScreen() {
-  //   return PageRouteBuilder(
-  //     pageBuilder: (context, animation, secondaryAnimation) =>
-  //         const ExportExcelPage(),
-  //     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-  //       const begin = Offset(1.0, 0.0);
-  //       const end = Offset.zero;
-  //       const curve = Curves.easeInOut;
-  //       var tween =
-  //           Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-  //       var offsetAnimation = animation.drive(tween);
-  //       return SlideTransition(
-  //         position: offsetAnimation,
-  //         child: child,
-  //       );
-  //     },
-  //   );
-  // }
+class _DataSource extends DataTableSource {
+  final List<Dataset> data;
+  final BuildContext context;
+  void Function(VoidCallback fn) setState;
+  _DataSource({
+    required this.data,
+    required this.context,
+    required this.setState,
+  });
 
   updateDataset({
     required String refNo,
@@ -722,6 +361,450 @@ class _DatasetPageState extends State<DatasetPage> {
     );
   }
 
+  @override
+  DataRow? getRow(int index) {
+    if (index >= data.length) {
+      return null;
+    }
+
+    final item = data[index];
+
+    return DataRow(
+      color: MaterialStateProperty.resolveWith<Color?>(
+        (Set<MaterialState> states) {
+          return getColor(data[index].colorMark.toString().toLowerCase())
+              .withOpacity(0.6);
+        },
+      ),
+      cells: [
+        DataCell(
+          Text(
+            data[index].id.toString(),
+          ),
+        ),
+        DataCell(
+          Text(
+            data[index].refNo.toString(),
+          ),
+        ),
+        DataCell(
+          Text(
+            data[index].bankName.toString(),
+          ),
+        ),
+        DataCell(
+          Text(
+            data[index].branchName.toString(),
+          ),
+        ),
+        DataCell(
+            SizedBox(
+              width: 250,
+              child: Text(
+                data[index].partyName.toString(),
+              ),
+            ), onTap: () {
+          // _navigateToNextPage(context,
+          //     refNo: data['refNo'],
+          //     partyName: data['partyName'],
+          //     address:
+          //         '${data['colonyName']}, ${data['cityVillageName']}',
+          //     billId: data['billId'],
+          //     bankName: data['bankName'],
+          //     branchName: data['branchName']);
+        }),
+        DataCell(Text(
+          data[index].colonyName.toString(),
+        )),
+        DataCell(Text(data[index].cityVillageName.toString())),
+        DataCell(
+          Text(
+            '${data[index].latitude}°N, ${data[index].longitude}°E',
+          ),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MapPage(
+                  latitude: data[index].latitude.toString(),
+                  longitude: data[index].latitude.toString(),
+                  zoom: 20,
+                ),
+              ),
+            );
+          },
+        ),
+        DataCell(Text(data[index].marketRate.toString())),
+        DataCell(Text(data[index].unit.toString())),
+        // DataCell(Text(DateFormat('yyyy-MM-dd')
+        //     .format(data['dateOfValuation'].toDate())
+        //     .toString())),
+        // _isLoading
+        //     ? DataCell(
+        //         CircularProgressIndicator(),
+        //       )
+        //     :
+        DataCell(
+          Row(
+            children: [
+              Text(
+                DateFormat('dd-MM-yyyy').format(
+                  data[index].dateOfVisit,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  _selectDate(
+                    context,
+                    data[index].dateOfVisit,
+                    data[index].id,
+                  );
+                },
+                icon: const Icon(Icons.edit),
+              )
+            ],
+          ),
+        ),
+        DataCell(Text(
+          data[index].remarks.toString(),
+        )),
+        DataCell(Text(
+          data[index].entryBy.toString(),
+        )),
+        DataCell(SizedBox(
+          child: TextButton(
+            child: const Text('Edit'),
+            onPressed: () {
+              updateDataset(
+                id: data[index].id,
+                refNo: data[index].refNo,
+                partyName: data[index].partyName,
+                colonyName: data[index].colonyName,
+                cityVillageName: data[index].cityVillageName,
+                marketRate: data[index].marketRate,
+                unit: data[index].unit,
+                remarks: data[index].remarks,
+                colorMark: data[index].colorMark,
+                // Keep existing datasetName
+                bankName: data[index].bankName, // Keep existing bankName
+                latitude: data[index].latitude, // Keep existing latitude
+                branchName: data[index].branchName, // Keep existing branchName
+                longitude: data[index].longitude, // Keep existing longitude
+
+                createdAt: data[index].createdAt, // Keep existing createdAt
+                dateOfVisit:
+                    data[index].dateOfVisit, // Keep existing dateOfVisit
+                entryBy: data[index].entryBy,
+              );
+            },
+          ),
+        )),
+        DataCell(SizedBox(
+          child: TextButton(
+              child: const Text(
+                'Remove',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+              onPressed: () {
+                removeExistingDataset(data[index].id, context, setState);
+              }),
+        )),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => data.length;
+
+  @override
+  int get selectedRowCount => 0;
+}
+
+class DatasetPage extends StatefulWidget {
+  static const String routeName = '/dataset';
+
+  final double latitude;
+  final double longitude;
+
+  const DatasetPage({
+    super.key,
+    this.latitude = 0.0,
+    this.longitude = 0.0,
+  });
+
+  @override
+  _DatasetPageState createState() => _DatasetPageState();
+}
+
+class _DatasetPageState extends State<DatasetPage> {
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  TextEditingController updatePartyNameController = TextEditingController();
+  TextEditingController updaterefNoController = TextEditingController();
+
+  TextEditingController updateColonyNameController = TextEditingController();
+  TextEditingController updateCityVillageNameController =
+      TextEditingController();
+  TextEditingController updateMarketRateController = TextEditingController();
+  TextEditingController updateRemarksController = TextEditingController();
+  TextEditingController updateUnitController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    updaterefNoController.dispose();
+    updatePartyNameController.dispose();
+    updateColonyNameController.dispose();
+    updateCityVillageNameController.dispose();
+    updateMarketRateController.dispose();
+    updateUnitController.dispose();
+    updateRemarksController.dispose();
+
+    super.dispose();
+  }
+
+  // _selectDateRange(context) {
+  //   return showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return StatefulBuilder(builder: (context, setState) {
+  //         return ContentDialog(
+  //           title: const Text(
+  //             "Select Date Range for Exporting!",
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //           content:
+  //           ],
+  //         );
+  //       });
+  //     },
+  //   );
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('View Existing Datasets'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _isLoading = true;
+              });
+              context.read<DatasetProvider>().loadDatasets();
+
+              setState(() {
+                _isLoading = false;
+              });
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.1),
+                  spreadRadius: 2,
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 10,
+                ),
+                const Icon(
+                  Icons.search,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: CustomTextfield(
+                    title:
+                        'Search [Ref No., Bank Name, Branch Name, Colony Name, City/Village Name]',
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(
+                          () {}); // Trigger a rebuild when search input changes
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+
+                // const m.VerticalDivider(
+                //   thickness: 5,
+                //   width: 5,
+                //   color: Color.fromARGB(255, 18, 19, 19),
+                // ),
+                const SizedBox(
+                  width: 5,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+
+          // Data Table
+          Consumer<DatasetProvider>(
+            builder: (context, datasetProvider, child) {
+              final filteredData = datasetProvider.datasets!.where((doc) {
+                if (widget.longitude != 0.0) {
+                  final double docLongitude = doc.longitude;
+                  return docLongitude == widget.longitude;
+                }
+                final docBankName = doc.bankName.toString().toLowerCase();
+                final docBranchName = doc.branchName.toString().toLowerCase();
+                final partyName = doc.partyName.toString().toLowerCase();
+                final docColonyName = doc.colonyName.toString().toLowerCase();
+                final docCityVillageName =
+                    doc.cityVillageName.toString().toLowerCase();
+                final docRefNo = doc.refNo.toString().toLowerCase();
+                final searchQuery = _searchController.text.toLowerCase();
+
+                final searchTerms = searchQuery.split(' ');
+
+                return searchTerms.every(
+                  (term) =>
+                      docBankName.contains(term) ||
+                      docBranchName.contains(term) ||
+                      partyName.contains(term) ||
+                      docColonyName.contains(term) ||
+                      docCityVillageName.contains(term) ||
+                      docRefNo.contains(term),
+                );
+              }).toList();
+
+              if (filteredData.isEmpty) {
+                return noDataIcon();
+              }
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: PaginatedDataTable2(
+                    columnSpacing: 12,
+                    horizontalMargin: 12,
+                    minWidth: 3000,
+                    headingRowColor: MaterialStateProperty.all(
+                      const Color.fromARGB(255, 163, 163, 163),
+                    ),
+                    rowsPerPage: _pageSize,
+                    availableRowsPerPage: const [10, 25, 50],
+                    onRowsPerPageChanged: (value) {
+                      setState(() {
+                        _pageSize = value!;
+                      });
+                    },
+                    columns: const [
+                      DataColumn(
+                        label: Text('S. No.'),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('Ref. No.'),
+                      ),
+                      DataColumn(
+                        label: Text('Bank Name'),
+                      ),
+                      DataColumn(
+                        label: Text('Branch Name'),
+                      ),
+                      DataColumn(
+                        label: Text('Party Name'),
+                      ),
+                      DataColumn(
+                        label: Text('Colony Name'),
+                      ),
+                      DataColumn(
+                        label: Text('City/Village Name'),
+                      ),
+                      DataColumn(
+                        label: Text('Coordinates'),
+                      ),
+                      DataColumn(
+                        label: Text('Market Rate (₹)'),
+                      ),
+                      DataColumn(
+                        label: Text('Unit (per)'),
+                      ),
+                      // DataColumn(label: Text('Date of Valuation')),
+                      DataColumn(
+                        label: Text('Date of Visit'),
+                      ),
+                      DataColumn(
+                        label: Text('Remarks'),
+                      ),
+                      DataColumn(
+                        label: Text('Entry By'),
+                      ),
+                      DataColumn(
+                        label: Text('Edit'),
+                      ),
+                      DataColumn(
+                        label: Text('Remove Data'),
+                      ),
+                    ],
+                    source: _DataSource(
+                        data: filteredData,
+                        context: context,
+                        setState: setState),
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  // Route _popupScreen() {
+  //   return PageRouteBuilder(
+  //     pageBuilder: (context, animation, secondaryAnimation) =>
+  //         const ExportExcelPage(),
+  //     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+  //       const begin = Offset(1.0, 0.0);
+  //       const end = Offset.zero;
+  //       const curve = Curves.easeInOut;
+  //       var tween =
+  //           Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+  //       var offsetAnimation = animation.drive(tween);
+  //       return SlideTransition(
+  //         position: offsetAnimation,
+  //         child: child,
+  //       );
+  //     },
+  //   );
+  // }
+
   Future<void> updateDatasetLogic(
       Dataset dataset, Map<String, dynamic> updates) async {
     Dataset updatedDataset = dataset.copyWith(updates);
@@ -737,59 +820,6 @@ class _DatasetPageState extends State<DatasetPage> {
     } catch (e) {
       showAlert(context, e.toString());
     }
-  }
-
-  removeExistingDataset(int id) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            "Are you Sure?",
-            style: TextStyle(fontSize: 18),
-          ),
-          content: const Text(
-            "This action will parmanently delete this data.",
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete'),
-            )
-          ],
-        );
-      },
-    );
-    if (result == null || !result) {
-      return;
-    }
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      final datasetId = context
-          .read<DatasetProvider>()
-          .datasets!
-          .where((element) => element.id == id)
-          .first
-          .id;
-
-      // context.read<DatasetProvider>().deleteDataset(dataset);
-      await DatasetServices.deleteDataset(datasetId);
-
-      await context.read<DatasetProvider>().loadDatasets();
-    } catch (e) {
-      showAlert(context, e.toString());
-      return;
-    }
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   void _navigateToNextPage(BuildContext context,

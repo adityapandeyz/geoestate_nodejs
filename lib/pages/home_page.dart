@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geoestate/constants/global_variables.dart';
 import 'package:geoestate/pages/dateset_page.dart';
+import 'package:geoestate/pages/export_page.dart';
 import 'package:geoestate/pages/login_page.dart';
 import 'package:geoestate/pages/map_page.dart';
 import 'package:geoestate/provider/auth_provider.dart';
@@ -163,7 +164,11 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          ExportExcelPage.routeName,
+                        );
+                      },
                       child: Container(
                         width: double.infinity,
                         height: 150,

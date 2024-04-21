@@ -6,6 +6,8 @@ import 'package:geoestate/pages/login_page.dart';
 import 'package:geoestate/pages/map_page.dart';
 import 'package:geoestate/pages/splash_page.dart';
 
+import 'pages/export_page.dart';
+
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
   switch (routeSettings.name) {
     case LoginPage.routeName:
@@ -36,6 +38,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
     case DatasetPage.routeName:
       return MaterialPageRoute(
         builder: (_) => const DatasetPage(),
+      );
+
+    case ExportExcelPage.routeName:
+      return MaterialPageRoute(
+        builder: (_) => const ExportExcelPage(),
       );
 
     default:

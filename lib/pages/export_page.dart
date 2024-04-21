@@ -1,254 +1,241 @@
-// import 'dart:html' as html;
+import 'dart:io';
 
-// import 'package:easy_date_timeline/easy_date_timeline.dart';
-// import 'package:excel/excel.dart';
-// import 'package:flutter/material.dart' as material;
-// import 'package:flutter/material.dart';
-// import 'package:geoestate/widgets/custom_button.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:intl/intl.dart';
+import 'package:excel/excel.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:flutter/material.dart';
+import 'package:geoestate/provider/dataset_provider.dart';
+import 'package:geoestate/widgets/custom_button.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
-// import '../utils/utils.dart';
-// import '../widgets/custom_page2.dart';
+import '../constants/utils.dart';
+import '../widgets/custom_page2.dart';
 
-// class ExportExcelPage extends StatefulWidget {
-//   const ExportExcelPage({super.key});
+class ExportExcelPage extends StatefulWidget {
+  static const routeName = '/export-excel';
+  const ExportExcelPage({super.key});
 
-//   @override
-//   State<ExportExcelPage> createState() => _ExportExcelPageState();
-// }
+  @override
+  State<ExportExcelPage> createState() => _ExportExcelPageState();
+}
 
-// class _ExportExcelPageState extends State<ExportExcelPage> {
-//   DateTime _startDate = DateTime.now();
-//   DateTime _endDate = DateTime.now();
+class _ExportExcelPageState extends State<ExportExcelPage> {
+  DateTime _startDate = DateTime.now();
+  DateTime _endDate = DateTime.now();
 
-//   Future<void> _selectStartDate(BuildContext context) async {
-//     DateTime? picked = await showDatePicker(
-//       context: context,
-//       initialDate: _startDate,
-//       firstDate: DateTime(2000),
-//       lastDate: DateTime(2101),
-//     );
+  Future<void> _selectStartDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
 
-//     if (picked != null && picked != _startDate) {
-//       setState(() {
-//         _startDate = picked;
-//       });
-//     }
-//   }
+    if (picked != null && picked != _startDate) {
+      setState(() {
+        _startDate = picked;
+      });
+    }
+  }
 
-//   Future<void> _selectEndDate(BuildContext context) async {
-//     DateTime? picked = await showDatePicker(
-//       context: context,
-//       initialDate: _endDate,
-//       firstDate: DateTime(2000),
-//       lastDate: DateTime(2101),
-//     );
+  Future<void> _selectEndDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
 
-//     if (picked != null && picked != _endDate) {
-//       setState(() {
-//         _endDate = picked;
-//       });
-//     }
-//   }
+    if (picked != null && picked != _endDate) {
+      setState(() {
+        _endDate = picked;
+      });
+    }
+  }
 
-//   Future<void> exportDataToExcel(
-//       DateTime selectedFromDate, DateTime selectedToDate) async {
-//     // Fetch data from Firestore based on the date range
-//     try {
-//       final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-//           .collection('datasets')
-//           .where(
-//             'dateOfVisit',
-//             isGreaterThanOrEqualTo: DateTime(
-//               selectedFromDate.year,
-//               selectedFromDate.month,
-//               selectedFromDate.day,
-//             ),
-//           )
-//           .where(
-//             'dateOfVisit',
-//             isLessThanOrEqualTo: DateTime(
-//               selectedToDate.year,
-//               selectedToDate.month,
-//               selectedToDate.day,
-//             ),
-//           )
-//           .get();
+  Future<void> exportDataToExcel(
+      DateTime selectedFromDate, DateTime selectedToDate) async {
+    try {
+      final filteredData = context
+          .read<DatasetProvider>()
+          .datasets!
+          .where((dataset) =>
+              dataset.dateOfVisit.isAfter(selectedFromDate) &&
+              dataset.dateOfVisit.isBefore(selectedToDate))
+          .toList();
 
-//       // Create Excel workbook and sheet
-//       final Excel excel = Excel.createExcel();
-//       final Sheet sheetObject = excel['Sheet1'];
+      // Create Excel workbook and sheet
+      final Excel excel = Excel.createExcel();
+      final Sheet sheetObject = excel['Sheet1'];
 
-//       // Add headers to the Excel sheet
-//       sheetObject.appendRow([
-//         'Ref. No.',
-//         'Bank Name',
-//         'Branch Name',
-//         'Party Name',
-//         'Colony Name',
-//         'City/Village Name',
-//         'Coordinates',
-//         'Market Rate (₹)',
-//         'Unit (per)',
-//         'Date of Valuation',
-//         'Date of Visit',
-//         'Remarks'
-//       ]);
+      // Add headers to the Excel sheet
+      sheetObject.appendRow(
+        [
+          TextCellValue('Ref No'),
+          TextCellValue('Bank Name'),
+          TextCellValue('Branch Name'),
+          TextCellValue('Party Name'),
+          TextCellValue('Colony Name'),
+          TextCellValue('City/Village Name'),
+          TextCellValue('Location'),
+          TextCellValue('Market Rate'),
+          TextCellValue('Unit'),
+          TextCellValue('Date of Visit'),
+          TextCellValue('Remarks'),
+        ],
+      );
 
-//       final List<QueryDocumentSnapshot> documents = querySnapshot.docs;
+      for (final document in filteredData) {
+        // var data = document.data();
+        sheetObject.appendRow([
+          TextCellValue(document.refNo),
+          TextCellValue(document.bankName),
+          TextCellValue(document.branchName),
+          TextCellValue(document.partyName),
+          TextCellValue(document.colonyName),
+          TextCellValue(document.cityVillageName),
+          TextCellValue('${document.latitude}°N, ${document.longitude}°E'),
+          TextCellValue(document.marketRate.toString()),
+          TextCellValue(document.unit),
+          TextCellValue(DateFormat('yyyy-MM-dd').format(document.dateOfVisit)),
+          TextCellValue(document.remarks),
+        ]);
+      }
 
-//       for (QueryDocumentSnapshot document in documents) {
-//         // var data = document.data();
-//         sheetObject.appendRow([
-//           document['refNo'],
-//           document['bankName'],
-//           document['branchName'],
-//           document['partyName'],
-//           document['colonyName'],
-//           document['cityVillageName'],
-//           '${document['latitude']}°N, ${document['longitude']}°E',
-//           document['marketRate'],
-//           document['unit'],
-//           DateFormat('yyyy-MM-dd')
-//               .format(document['dateOfValuation'].toDate())
-//               .toString(),
-//           DateFormat('yyyy-MM-dd')
-//               .format(document['dateOfVisit'].toDate())
-//               .toString(),
-//           document['remarks'],
-//         ]);
-//       }
+      // Save Excel file
+      final fileBytes = excel.encode();
 
-//       // Save Excel file
-//       final fileBytes = excel.encode();
+      final String fileName =
+          'GeoEstate_${DateFormat('dd-MM-yyyy').format(selectedFromDate)}_to_${DateFormat('dd-MM-yyyy').format(selectedToDate)}.xlsx';
 
-//       // Use dart:html to create a Blob and trigger a download
-//       final blob = html.Blob([fileBytes]);
-//       final url = html.Url.createObjectUrlFromBlob(blob);
-//       final anchor = html.AnchorElement(href: url)
-//         ..target = 'webbrowser' // Open in a new tab
-//         ..download = 'exported_data.xlsx' // Specify the filename
-//         ..click();
+      final String path = await saveFile(fileName, fileBytes!);
 
-//       // Clean up
-//       html.Url.revokeObjectUrl(url);
-//     } on Exception catch (e) {
-//       showAlert(context, e.toString());
-//     }
-//   }
+      showAlert(context, 'File saved at $path');
+    } on Exception catch (e) {
+      showAlert(context, e.toString());
+    }
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return CustomPage2(
-//       pageTitle: 'Export Dataset to Excel',
-//       sidebar: material.Material(
-//         child: SingleChildScrollView(
-//           child: Padding(
-//             padding: const EdgeInsets.all(60.0),
-//             child: Center(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Text(
-//                     'Export Dataset to Excel',
-//                     style: GoogleFonts.poppins(
-//                       textStyle: const TextStyle(
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 32,
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(
-//                     height: 30,
-//                   ),
-//                   Text(
-//                     'Start Date (Date of Visit)',
-//                     style: GoogleFonts.poppins(
-//                       textStyle: const TextStyle(
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 16,
-//                       ),
-//                     ),
-//                   ),
-//                   Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       Text(
-//                         DateFormat('dd-MM-yyyy')
-//                             .format(_startDate.toLocal())
-//                             .toString(),
-//                         style: GoogleFonts.poppins(
-//                           textStyle: const TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 21,
-//                           ),
-//                         ),
-//                       ),
-//                       const SizedBox(
-//                         width: 20,
-//                       ),
-//                       IconButton(
-//                         onPressed: () {
-//                           _selectStartDate(context);
-//                         },
-//                         icon: const Icon(Icons.edit),
-//                       )
-//                     ],
-//                   ),
-//                   const SizedBox(
-//                     height: 20,
-//                   ),
-//                   Text(
-//                     'End Date (Date of Visit)',
-//                     style: GoogleFonts.poppins(
-//                       textStyle: const TextStyle(
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 16,
-//                       ),
-//                     ),
-//                   ),
-//                   Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       Text(
-//                         DateFormat('dd-MM-yyyy')
-//                             .format(_endDate.toLocal())
-//                             .toString(),
-//                         style: GoogleFonts.poppins(
-//                           textStyle: const TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 21,
-//                           ),
-//                         ),
-//                       ),
-//                       const SizedBox(
-//                         width: 20,
-//                       ),
-//                       IconButton(
-//                         onPressed: () {
-//                           _selectEndDate(context);
-//                         },
-//                         icon: const Icon(Icons.edit),
-//                       )
-//                     ],
-//                   ),
-//                   const SizedBox(
-//                     height: 30,
-//                   ),
-//                   CustomButton(
-//                     text: "Export",
-//                     onClick: () async {
-//                       setState(() {});
-//                       await exportDataToExcel(_startDate, _endDate);
-//                     },
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+  saveFile(String fileName, List<int> bytes) async {
+    final path = await await getDownloadsDirectory();
+    final file = File('${path!.path}/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPage2(
+      pageTitle: 'Export Dataset to Excel',
+      sidebar: material.Material(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(60.0),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Export Dataset to Excel',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  Text(
+                    'Start Date (Date of Visit)',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        DateFormat('dd-MM-yyyy')
+                            .format(_startDate.toLocal())
+                            .toString(),
+                        style: GoogleFonts.poppins(
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 21,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          _selectStartDate(context);
+                        },
+                        icon: const Icon(Icons.edit),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    'End Date (Date of Visit)',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        DateFormat('dd-MM-yyyy')
+                            .format(_endDate.toLocal())
+                            .toString(),
+                        style: GoogleFonts.poppins(
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 21,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          _selectEndDate(context);
+                        },
+                        icon: const Icon(Icons.edit),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  CustomButton(
+                    text: "Export",
+                    onClick: () async {
+                      setState(() {});
+                      await exportDataToExcel(_startDate, _endDate);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
