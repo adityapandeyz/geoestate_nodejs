@@ -92,11 +92,13 @@ class AuthProvider extends ChangeNotifier {
 
   void setUser(String user) {
     _user = User.fromJson(user);
+    print(user);
     notifyListeners();
   }
 
   void setUserFromModel(User user) {
     _user = user;
+    print(user);
     notifyListeners();
   }
 }

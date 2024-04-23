@@ -94,7 +94,7 @@ class DatasetServices {
                 'unit': dataset.unit,
                 'createdAt': dataset.createdAt.toIso8601String(),
                 'remarks': dataset.remarks,
-                'colorMark': dataset.colorMark ?? '',
+                'colorMark': dataset.colorMark,
                 'dateOfVisit': dataset.dateOfVisit.toIso8601String(),
                 'entryBy': userProvider.user.email,
               }),

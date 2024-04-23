@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geoestate/pages/about_page.dart';
 import 'package:geoestate/pages/dateset_page.dart';
 import 'package:geoestate/pages/home_page.dart';
+import 'package:geoestate/pages/loading_page.dart';
 import 'package:geoestate/pages/login_page.dart';
 import 'package:geoestate/pages/map_page.dart';
 import 'package:geoestate/pages/splash_page.dart';
@@ -23,6 +24,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
     case SplashPage.routeName:
       return MaterialPageRoute(
         builder: (_) => const SplashPage(),
+      );
+
+    case LoadingPage.routeName:
+      return MaterialPageRoute(
+        builder: (_) => LoadingPage(),
       );
 
     case AboutPage.routeName:

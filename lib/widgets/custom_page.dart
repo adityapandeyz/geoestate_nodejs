@@ -65,8 +65,8 @@ class _CustomPageState extends State<CustomPage> {
                           Radius.circular(12.0),
                         ),
                       ),
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1618172193763-c511deb635ca?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                      child: Image.asset(
+                        'assets/images/egor-myznik-hyUnY1oXthA-unsplash.jpg',
                         fit: BoxFit.cover,
                       ),
                     ),

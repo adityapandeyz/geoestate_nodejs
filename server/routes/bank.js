@@ -2,10 +2,8 @@ const express = require("express");
 const auth = require("../middlewares/auth");
 const { PrismaClient } = require("@prisma/client");
 
-
 const bankRouter = express.Router();
 const prisma = new PrismaClient();
-
 
 bankRouter.get("/api/banks", async (req, res) => {
   try {

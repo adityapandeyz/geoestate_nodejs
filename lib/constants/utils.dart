@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 noDataIcon() {
   return const Center(
-    child: Icon(
-      Icons.cancel,
-      color: Color.fromARGB(176, 50, 49, 48),
-      size: 56,
+    child: Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Icon(
+        Icons.cancel,
+        color: Colors.white,
+        size: 56,
+      ),
     ),
   );
 }

@@ -15,7 +15,7 @@ datasetRouter.get("/api/datasets", async (req, res) => {
   }
 });
 
-datasetRouter.post("/api/create-dataset", async (req, res) => {
+datasetRouter.post("/api/create-dataset", auth, async (req, res) => {
   try {
     const {
       refNo,

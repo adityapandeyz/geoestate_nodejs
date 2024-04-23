@@ -55,7 +55,7 @@ authRouter.post("/api/signin", async (req, res) => {
     const existingUser = await prisma.user.findFirst({
       where: { email: email },
     });
-  
+
     if (!existingUser) {
       return res.status(400).json({ msg: "User not found!" });
     }
@@ -64,11 +64,9 @@ authRouter.post("/api/signin", async (req, res) => {
       return res.status(400).json({ msg: "Password is not set for this user!" });
     }
 
-
     const isMatch = await bcryptjs.compare(password, existingUser.password);
 
-
-    if (!isMatch) { 
+    if (!isMatch) {
       return res.status(400).json({ msg: "Invalid credentials!" });
     }
 
@@ -78,6 +76,8 @@ authRouter.post("/api/signin", async (req, res) => {
       token,
       user: { id: existingUser.id, email: existingUser.email },
     });
+
+    console.log(existingUser.email); // Move this line here
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: err.message });
@@ -109,7 +109,7 @@ authRouter.post('/tokenIsValid', async (req, res)=> {
 // get user data 
 authRouter.get('/', auth, async (req, res) => {
   try {
-    const user = await prisma.user.findFirst({ where: { id: req.user.id } });
+    const user = await prisma.user.findUnique({ where: { id: req.user } });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -121,6 +121,9 @@ authRouter.get('/', auth, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
+
 
 
 module.exports = authRouter;

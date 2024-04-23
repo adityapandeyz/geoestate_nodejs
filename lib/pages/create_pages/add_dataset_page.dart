@@ -51,8 +51,6 @@ class _AddDataSetState extends State<AddDataSet> {
   TextEditingController marketRateController = TextEditingController();
   TextEditingController remarksController = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
-
   @override
   void dispose() {
     partyNameController.dispose();
@@ -443,15 +441,14 @@ Longitude: ${widget.longitude}°E""",
       );
 
       await DatasetServices.createDataset(context: context, dataset: dataset);
-
-      await context.read<DatasetProvider>().loadDatasets();
     } catch (e) {
       showAlert(context, e.toString());
     }
 
     Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const HomePage()), (route) => false);
-    showAlert(context, 'Dataset created successfully!');
+
+    await context.read<DatasetProvider>().loadDatasets();
   }
 
   ColorInfo getColorInfo(Color color) {

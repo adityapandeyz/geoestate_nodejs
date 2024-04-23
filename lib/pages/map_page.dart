@@ -55,6 +55,9 @@ class _MapPageState extends State<MapPage> {
 
   bool showMenu = true;
 
+  final int initialDisplayLimit = 5;
+  int displayLimit = 10;
+
   @override
   void dispose() {
     _coordinatesController.dispose();
@@ -475,52 +478,71 @@ class _MapPageState extends State<MapPage> {
           const SizedBox(
             height: 10,
           ),
-          Consumer<MarkerProvider>(
-            builder: (context, markerProvider, child) {
-              if (markerProvider.markers != null) {
-                noDataIcon();
-              }
+          Builder(builder: (context) {
+            return Consumer<MarkerProvider>(
+              builder: (context, markerProvider, child) {
+                if (markerProvider.markers != null) {
+                  noDataIcon();
+                }
 
-              // Extract data from the snapshot
-              final List<myClient.Marker> documents = markerProvider.markers!;
+                // Extract data from the snapshot
+                final List<myClient.Marker> documents = markerProvider.markers!;
 
-              final filteredData = documents.where((doc) {
-                final docLatitude = doc.latitude.toString();
+                final filteredData = documents.where((doc) {
+                  final docLatitude = doc.latitude.toString();
 
-                final docLongitude = doc.longitude.toString();
+                  final docLongitude = doc.longitude.toString();
 
-                final docMarketRate = doc.marketRate.toString();
+                  final docMarketRate = doc.marketRate.toString();
 
-                final searchQuery = _searchController.text.toLowerCase();
+                  final searchQuery = _searchController.text.toLowerCase();
 
-                return docLatitude.contains(searchQuery) ||
-                    docMarketRate.contains(searchQuery) ||
-                    docLongitude.contains(searchQuery);
-              }).toList();
+                  return docLatitude.contains(searchQuery) ||
+                      docMarketRate.contains(searchQuery) ||
+                      docLongitude.contains(searchQuery);
+                }).toList();
 
-              if (!isDescending) {
-                filteredData
-                    .sort((a, b) => a.marketRate.compareTo(b.marketRate));
-              } else {
-                filteredData
-                    .sort((a, b) => b.marketRate.compareTo(a.marketRate));
-              }
+                if (!isDescending) {
+                  filteredData
+                      .sort((a, b) => a.marketRate.compareTo(b.marketRate));
+                } else {
+                  filteredData
+                      .sort((a, b) => b.marketRate.compareTo(a.marketRate));
+                }
 
-              if (filteredData.isEmpty) {
-                return noDataIcon();
-              }
-              return ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: filteredData.length,
-                itemBuilder: (BuildContext context, int index) {
-                  List<myClient.Marker> data = filteredData.toList();
+                if (filteredData.isEmpty) {
+                  return noDataIcon();
+                }
 
-                  return customMarkerTile(data, index, context);
-                },
-              );
-            },
-          ),
+                List<myClient.Marker> displayedData =
+                    filteredData.take(displayLimit).toList();
+
+                return ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: displayedData.length + 1,
+                  itemBuilder: (BuildContext context, int index) {
+                    if (index == displayedData.length) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              displayLimit += 5;
+                            });
+                          },
+                          child: Text('View More'),
+                        ),
+                      );
+                    } else {
+                      // Display list item
+                      return customMarkerTile(displayedData, index, context);
+                    }
+                  },
+                );
+              },
+            );
+          }),
         ],
       ),
     );
@@ -577,19 +599,19 @@ class _MapPageState extends State<MapPage> {
                     ],
                   ),
                   data[index].marketRate == 0
-                      ? Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: TextButton(
-                            onPressed: () {
-                              addPrice(data[index].id);
-                            },
-                            child: const Text('Add Rate'),
-                          ),
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                addPrice(data[index].id);
+                              },
+                              child: const Text('Add Rate'),
+                            ),
+                          ],
                         )
                       : Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             const Text(
                               '₹ ',

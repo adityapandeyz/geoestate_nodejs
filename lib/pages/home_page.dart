@@ -89,8 +89,9 @@ class _HomePageState extends State<HomePage> {
                 height: 300,
                 child: Image(
                   fit: BoxFit.fitWidth,
-                  image: NetworkImage(
-                      'https://images.unsplash.com/photo-1584972191378-d70853fc47fc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+                  image: AssetImage(
+                    'assets/images/egor-myznik-hyUnY1oXthA-unsplash.jpg',
+                  ),
                 ),
               ),
 

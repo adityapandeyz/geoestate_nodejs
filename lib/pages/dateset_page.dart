@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geoestate/provider/auth_provider.dart';
 import 'package:geoestate/services/dataset_services.dart';
 
 import 'package:intl/intl.dart';
@@ -44,104 +43,91 @@ Color getColor(String colorName) {
   }
 }
 
-DateTime _selectedDate = DateTime.now();
-bool _isLoading = false;
-int _pageSize = 10;
-String selectedColor = 'white'; // Default selected color
-
-TextEditingController updatePartyNameController = TextEditingController();
-TextEditingController updaterefNoController = TextEditingController();
-
-TextEditingController updateColonyNameController = TextEditingController();
-TextEditingController updateCityVillageNameController = TextEditingController();
-TextEditingController updateMarketRateController = TextEditingController();
-TextEditingController updateRemarksController = TextEditingController();
-TextEditingController updateUnitController = TextEditingController();
-
-bool isLoading = false;
-
-void _selectDate(BuildContext context, DateTime date, int id) async {
-  final DateTime? picked = await showDatePicker(
-    context: context,
-    initialDate: date,
-    firstDate: DateTime(2015, 8),
-    lastDate: DateTime(2101),
-  );
-  if (picked != null && picked != date) {
-    _selectedDate = picked;
-    try {
-      await DatasetServices.updateDateOfVisit(
-        id: id,
-        dateOfVisit: _selectedDate,
-      );
-
-      await context.read<DatasetProvider>().loadDatasets();
-    } catch (e) {
-      print(e);
-    }
-  }
-}
-
-void removeExistingDataset(int id, context, setState) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text(
-          "Remove Dataset",
-          style: TextStyle(fontSize: 16),
-        ),
-        content: const Text(
-          "Are you sure you want to remove this dataset?",
-        ),
-        actions: [
-          TextButton(
-            child: const Text(
-              "Cancel",
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          ElevatedButton(
-            child: _isLoading
-                ? const CircularProgressIndicator()
-                : const Text(
-                    "Remove",
-                  ),
-            onPressed: () async {
-              setState(() {
-                _isLoading = true;
-              });
-              try {
-                await DatasetServices.deleteDataset(id);
-
-                await context.read<DatasetProvider>().loadDatasets();
-              } catch (e) {
-                print(e);
-              }
-
-              setState(() {
-                _isLoading = false;
-              });
-              Navigator.pop(context);
-            },
-          )
-        ],
-      );
-    },
-  );
-}
-
 class _DataSource extends DataTableSource {
   final List<Dataset> data;
   final BuildContext context;
-  void Function(VoidCallback fn) setState;
+  final void Function(bool) setIsLoading;
+  final void Function(DateTime, int id) setSelectedDate;
+
   _DataSource({
     required this.data,
     required this.context,
-    required this.setState,
+    required this.setIsLoading,
+    required this.setSelectedDate,
   });
+
+  bool _isLoading = false;
+  String selectedColor = 'white'; // Default selected color
+
+  TextEditingController updatePartyNameController = TextEditingController();
+  TextEditingController updaterefNoController = TextEditingController();
+
+  TextEditingController updateColonyNameController = TextEditingController();
+  TextEditingController updateCityVillageNameController =
+      TextEditingController();
+  TextEditingController updateMarketRateController = TextEditingController();
+  TextEditingController updateRemarksController = TextEditingController();
+  TextEditingController updateUnitController = TextEditingController();
+
+  void _selectDate(BuildContext context, DateTime date, int id) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: date,
+      firstDate: DateTime(1800),
+      lastDate: DateTime(2200),
+    );
+    if (picked != null && picked != date) {
+      setSelectedDate(picked, id);
+    }
+  }
+
+  void removeExistingDataset(int id, context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "Remove Dataset",
+            style: TextStyle(fontSize: 16),
+          ),
+          content: const Text(
+            "Are you sure you want to remove this dataset?",
+          ),
+          actions: [
+            TextButton(
+              child: const Text(
+                "Cancel",
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            ElevatedButton(
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text(
+                      "Remove",
+                    ),
+              onPressed: () async {
+                setIsLoading(true);
+
+                try {
+                  await DatasetServices.deleteDataset(id);
+
+                  await context.read<DatasetProvider>().loadDatasets();
+                } catch (e) {
+                  print(e);
+                }
+
+                setIsLoading(false);
+                Navigator.pop(context);
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
 
   updateDataset({
     required String refNo,
@@ -507,7 +493,7 @@ class _DataSource extends DataTableSource {
                 ),
               ),
               onPressed: () {
-                removeExistingDataset(data[index].id, context, setState);
+                removeExistingDataset(data[index].id, context);
               }),
         )),
       ],
@@ -543,6 +529,11 @@ class DatasetPage extends StatefulWidget {
 class _DatasetPageState extends State<DatasetPage> {
   late TextEditingController _searchController;
 
+  bool _isLoading = false;
+  int _pageSize = 10;
+
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -573,6 +564,25 @@ class _DatasetPageState extends State<DatasetPage> {
     super.dispose();
   }
 
+  void updateDate(
+    id,
+  ) async {
+    try {
+      setIsLoading(true);
+
+      await DatasetServices.updateDateOfVisit(
+        id: id,
+        dateOfVisit: _selectedDate,
+      );
+
+      await context.read<DatasetProvider>().loadDatasets();
+      setIsLoading(false);
+    } catch (e) {
+      print(e);
+      setIsLoading(false);
+    }
+  }
+
   // _selectDateRange(context) {
   //   return showDialog(
   //     context: context,
@@ -590,6 +600,19 @@ class _DatasetPageState extends State<DatasetPage> {
   //     },
   //   );
   // }
+
+  void setIsLoading(bool value) {
+    setState(() {
+      _isLoading = value;
+    });
+  }
+
+  void setSelectedDate(DateTime value, int id) {
+    setState(() {
+      _selectedDate = value;
+    });
+    updateDate(id);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -772,9 +795,11 @@ class _DatasetPageState extends State<DatasetPage> {
                       ),
                     ],
                     source: _DataSource(
-                        data: filteredData,
-                        context: context,
-                        setState: setState),
+                      data: filteredData,
+                      context: context,
+                      setIsLoading: setIsLoading,
+                      setSelectedDate: setSelectedDate,
+                    ),
                   ),
                 ),
               );

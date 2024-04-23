@@ -37,8 +37,8 @@ class _CustomPage2State extends State<CustomPage2> {
       ),
       body: Stack(
         children: [
-          Image.network(
-            'https://images.unsplash.com/photo-1583631755080-d9c248ea373f?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+          Image.asset(
+            'assets/images/egor-myznik-hyUnY1oXthA-unsplash.jpg',
             fit: BoxFit.cover,
             height: double.infinity,
             width: double.infinity,

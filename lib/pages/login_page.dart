@@ -51,10 +51,6 @@ class _LoginPageState extends State<LoginPage> {
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
-        // Navigator.of(context).pushNamedAndRemoveUntil(
-        //   HomePage.routeName,
-        //   (route) => false,
-        // );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -84,8 +80,8 @@ class _LoginPageState extends State<LoginPage> {
                 Stack(
                   children: [
                     InnerShadowMod(
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1584972191378-d70853fc47fc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                      child: Image.asset(
+                        'assets/images/egor-myznik-hyUnY1oXthA-unsplash.jpg',
                         fit: BoxFit.cover,
                         //  height: double.infinity,
                         height: screenWidth < MediaQuery.of(context).size.width

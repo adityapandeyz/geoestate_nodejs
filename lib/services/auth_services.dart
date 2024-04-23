@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geoestate/constants/error_handling.dart';
 import 'package:geoestate/constants/utils.dart';
 import 'package:geoestate/pages/home_page.dart';
+import 'package:geoestate/pages/loading_page.dart';
 import 'package:geoestate/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,7 +125,7 @@ class AuthService {
           await prefs.setString('x-auth-token', jsonDecode(res.body)['token']);
 
           Navigator.of(context).pushNamedAndRemoveUntil(
-            HomePage.routeName,
+            LoadingPage.routeName,
             (route) => false,
           );
         },
@@ -164,6 +165,7 @@ class AuthService {
 
         var userProvider = Provider.of<AuthProvider>(context, listen: false);
         userProvider.setUser(userRes.body);
+        print(userRes.body);
       }
 
       // httpErrorHandle(
