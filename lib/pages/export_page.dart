@@ -128,7 +128,7 @@ class _ExportExcelPageState extends State<ExportExcelPage> {
   @override
   Widget build(BuildContext context) {
     return CustomPage2(
-      pageTitle: 'Export Dataset to Excel',
+      pageTitle: 'Export Dataset',
       sidebar: material.Material(
         child: SingleChildScrollView(
           child: Padding(

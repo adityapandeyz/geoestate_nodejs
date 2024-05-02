@@ -73,11 +73,11 @@ class _DataSource extends DataTableSource {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: date,
-      firstDate: DateTime(1800),
-      lastDate: DateTime(2200),
+      firstDate: DateTime(1600),
+      lastDate: DateTime(2350),
     );
     if (picked != null && picked != date) {
-      setSelectedDate(picked, id);
+      setSelectedDate(picked.toLocal(), id);
     }
   }
 
@@ -433,8 +433,8 @@ class _DataSource extends DataTableSource {
           Row(
             children: [
               Text(
-                DateFormat('dd-MM-yyyy').format(
-                  data[index].dateOfVisit,
+                DateFormat('EEE dd-MM-yyyy').format(
+                  data[index].dateOfVisit.toLocal(),
                 ),
               ),
               IconButton(
