@@ -73,6 +73,11 @@ class _AddDataSetState extends State<AddDataSet> {
     Colors.orange.value: ColorInfo('Orange', 'Orange'),
     Colors.purple.value: ColorInfo('Purple', 'Purple'),
     Colors.indigo.value: ColorInfo('Indigo', 'Indigo'),
+       Colors.grey.value: ColorInfo( "Grey" , "Grey"),
+    Colors.brown.value: ColorInfo( "Brown",  "Brown"),
+    Colors.amber.value: ColorInfo( "Amber",  "Amber"),
+    Colors.lime.value: ColorInfo( "Lime",  "Lime"),
+    Colors.cyan.value: ColorInfo("Cyan", "Cyan")
   };
 
   int documentCount = 1;

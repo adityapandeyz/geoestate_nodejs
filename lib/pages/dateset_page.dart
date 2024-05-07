@@ -19,7 +19,12 @@ List<String> colors = [
   'yellow',
   'white',
   'purple',
-  'indigo'
+  'indigo',
+  "Grey",
+  "Brown",
+  "Amber",
+  "Lime",
+  "Cyan"
 ];
 
 Color getColor(String colorName) {
@@ -38,6 +43,17 @@ Color getColor(String colorName) {
       return Colors.purple;
     case 'indigo':
       return Colors.indigo;
+    case 'Grey':
+      return Colors.grey;
+    case 'Brown':
+      return Colors.brown;
+    case 'Amber':
+      return Colors.amber;
+    case 'Lime':
+      return Colors.lime;
+    case 'Cyan':
+      return Colors.cyan;
+
     default:
       return Colors.white; // Default color
   }
