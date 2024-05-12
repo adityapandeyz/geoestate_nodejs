@@ -18,7 +18,7 @@ app.use(express.json());
 
 
 // Connection configuration
-const cockroachDBUrl = 'postgresql://geoestate_cloud:iPCbsK-7VzPQws2HwprBFw@geoestate-8844.8nk.gcp-asia-southeast1.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full';
+const cockroachDBUrl = env(DATABASE_URL);
 
 // Parse the CockroachDB URL
 const params = url.parse(cockroachDBUrl);
